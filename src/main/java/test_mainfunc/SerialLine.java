@@ -1,5 +1,15 @@
+package test_mainfunc;
+
 import java.io.InputStream;
+import java.util.Date;
+import java.util.Random;
 import java.util.Scanner;
+
+import org.apache.commons.math3.distribution.NormalDistribution;
+// import org.apache.commons.math3.distribution.UniformRealDistribution;
+// import org.apache.commons.math3.distribution.WeibullDistribution;
+import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.RandomGeneratorFactory;
 
 public class SerialLine {
     public int NbStage;
@@ -10,10 +20,10 @@ public class SerialLine {
     public double OverallCT;
     public double[] Pblock;
     public double[] Pstarve;
-    public double[] IPA_Sensitivity;
-    public double[] Tup;
-    public double[] Tdown;
 
+
+
+    // Create a new test_mainfunc.SerialLine from txt file
     public SerialLine(InputStream system) {
 
         Scanner scanner=new Scanner (system);
@@ -49,9 +59,61 @@ public class SerialLine {
         {
             this.CT[j].Para2=scanner.nextDouble();
         }
-
-
+        scanner.next();
+        for (int j = 0; j < this.NbStage; j++)
+        {
+            this.CT[j].Para3=scanner.nextDouble();
+        }
     }
+
+    // Processing time generation
+    public void ProcTimeGeneration(int N, double[][] pij){
+        RandomGenerator generator = RandomGeneratorFactory.createRandomGenerator(new Random());
+
+        //Seed
+        generator.setSeed(new Date().getTime());
+
+        for (int j = 0; j < NbStage; j++) {
+            //Processing time
+            //Normal distribution
+            //CT[j].Para1 -  mean
+            //CT[j].Para2 -  coefficient of variance
+            if (CT[j].distribution.equals("Norm")) {
+                NormalDistribution pt = new NormalDistribution(generator, CT[j].Para1, CT[j].Para1 * CT[j].Para2);
+
+                double p = pt.sample();
+                for (int i = 0; i < N; i++) {
+                    while (p < 0 || p > 2 * CT[j].Para1) {
+                        p = pt.sample();
+                    }
+                    pij[i][j] = p;
+                    p = pt.sample();
+                }
+            }
+            // else if(CT[j].distribution.equals("Exp")){...}
+            // else if(CT[j].distribution.equals("Exp")){...}
+        }
+    }
+
+
+    //*****************************************************************************************************************
+    // Simulation
+    // Dual variables: uij, vij, wij, sij
+    /////////////////////////// OUTPUT //////////////////////////////////////////////////////
+    /////uij[i][j] : D[i][j] trigerred by S[i][j]                ////////////////////////////
+    /////wij[i][j] : D[i][j] trigerred by S[i-b_j][j+1] BLOCKAGE ////////////////////////////
+    /////vij[i][j] : S[i][j] trigerred by D[i-1][j]              ////////////////////////////
+    /////sij[i][j] : S[i][j] trigerred by D[i][j-1]   STARVATION ////////////////////////////
+
+    /////////////////////////// INPUT ///////////////////////////////////////////////////////
+    ///// N : Simulation length /////////////////////////////////////////////////////////////
+    ///// W : Warmup length (in terms of part number) ///////////////////////////////////////
+    ///// tij : processing time of a part at a station //////////////////////////////////////
+    ///// bar_Dij, bar_Sij : event time in warmup period ////////////////////////////////////
+    ///// SteadyState: simulation from W or from 0:
+    /////           if SteadyState=false, simulate from 0; bar_Dij and bar_Sij will be output
+    /////           if SteadyState=true, simulate from W; bar_Dij and bar_Sij will be used as input
+    /////////////////////////////////////////////////////////////////////////////////////////
 
     public void SIM_Serial_BAS(
             int N,
@@ -74,12 +136,10 @@ public class SerialLine {
         //***************************************
         //********** EVENT TIME *****************
         //***************************************
-        double[][] Sij = new double[N][];
-        double[][] Dij = new double[N][];
+        double[][] Sij = new double[N][NbStage];
+        double[][] Dij = new double[N][NbStage];
         for (int i = 0; i < N; i++)
         {
-            Sij[i] = new double[NbStage];
-            Dij[i] = new double[NbStage];
             for (int j = 0; j < NbStage; j++)
             {
                 Sij[i][j] = 0;
@@ -92,18 +152,14 @@ public class SerialLine {
         //***************************************
         //********** SIM ERG variables   ********
         //***************************************
-        int[][] bsij = new int[N][];
-        int[][] buij = new int[N][];
-        int[][] bvij = new int[N][];
-        int[][] bwij = new int[N][];
+        int[][] bsij = new int[N][this.NbStage];
+        int[][] buij = new int[N][this.NbStage];
+        int[][] bvij = new int[N][this.NbStage];
+        int[][] bwij = new int[N][this.NbStage];
 
 
         for (int i = 0; i <N; i++)
         {
-            bsij[i] = new int[this.NbStage];
-            buij[i] = new int[this.NbStage];
-            bvij[i] = new int[this.NbStage];
-            bwij[i] = new int[this.NbStage];
 
             for (int j = 0; j < NbStage; j++)
             {
