@@ -19,7 +19,7 @@ public class SerialLine {
         Scanner scanner=new Scanner (system);
         scanner.useDelimiter("\\s+");
 
-
+        System.out.println();
 
         scanner.next();
         this.NbStage=scanner.nextInt();
