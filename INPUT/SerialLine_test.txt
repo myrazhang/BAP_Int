@@ -3,6 +3,6 @@ Buffer: 3 3 3 3
 
 Cycletime:
 Distributuion:	Norm	Norm	Norm	Norm	Norm
-Mean:		    2	    2	    2.2	    2	    2
+Mean:		    1	    2	    3	    4	    1
 CV:		        0.1	    0.1	    0.1	    0.1	    0.1
 Para3:          0       0       0       0       0

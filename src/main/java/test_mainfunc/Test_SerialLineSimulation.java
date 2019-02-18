@@ -7,7 +7,6 @@ import static java.lang.Math.max;
 public class Test_SerialLineSimulation {
 
 
-
     public static void main(String argv[]) {
         String programPath = System.getProperty("user.dir");
 
