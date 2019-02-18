@@ -1,6 +1,13 @@
 package test_mainfunc;
-import static java.lang.Math.min;
+
+
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+
 import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 public class mM_value {
 
@@ -48,11 +55,24 @@ public class mM_value {
             double[][] tij
     )
     {
+        /*String programPath = System.getProperty("user.dir");
+        String test_File = programPath + "\\OUTPUT\\test.txt";
+        OutputStream test= null;
+        try {
+            test = new FileOutputStream(test_File);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+        PrintWriter file_test=new PrintWriter(test, true);*/
+
         for (int j = 1; j <= this.nbstage-1; j++){
             for(int k = this.Lj[j-1]; k <= this.Uj[j-1]; k++){
                 for (int i = k+1; i <= this.N; i++){
-                    this.mijk[i-1][j-1][k-1]=100000;
-                    this.Mijk[i-1][j-1][k-1]=0;
+                    if (k > this.Lj[j-1])
+                        this.mijk[i-1][j-1][k-1]=200000;
+                    if(k < this.Uj[j-1])
+                        this.Mijk[i-1][j-1][k-1]=0;
                 }
             }
         }
@@ -93,7 +113,7 @@ public class mM_value {
             for (int j  = 1; j <= this.nbstage-1; j++){
                 sij[i-1][j-1]=tij[i-2][j-1];
                 for (int delta_j = 1; delta_j <= this.nbstage-j ; delta_j++){
-                    for (int i0= i - U_j_deltaj[j-1][delta_j-1];i0<= i - L_j_deltaj[j-1][delta_j-1];i0++){
+                    for (int i0= max(i - U_j_deltaj[j-1][delta_j-1],1);i0<= min(i - L_j_deltaj[j-1][delta_j-1],this.N);i0++){
                         sij[i-1][j-1]=max(sij[i-1][j-1], tij[i0-1][j+delta_j-1]);
                     }
                 }
@@ -105,7 +125,7 @@ public class mM_value {
         for(int j=1;j <= this.nbstage-1;j++){
             for(int k=this.Lj[j-1]; k <= this.Uj[j-1];k++){
                 for (int i = k+1 ; i <= this.N; i++){
-                    for (int i0=i-this.Uj[j]+1;i0<= i-k;i0++){
+                    for (int i0=max(i-this.Uj[j-1]+1,1);i0<= min(i-k,this.N);i0++){
                         this.Mijk[i-1][j-1][k-1]=max(this.Mijk[i-1][j-1][k-1],sij[i0-1][j]);
                     }
                 }
