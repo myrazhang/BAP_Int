@@ -61,6 +61,9 @@ public class SerialLine {
         scanner.next();
         this.Uj=scanner.nextInt();
 
+        scanner.next();
+        this.THstar=scanner.nextDouble();
+
         this.Buffer = new int[this.NbStage - 1];
         scanner.next();
         for (int j = 0; j < this.NbStage - 1; j++)

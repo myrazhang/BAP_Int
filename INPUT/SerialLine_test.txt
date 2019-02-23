@@ -1,8 +1,11 @@
 NbStage: 5
+UB_Buffer: 20
+THstar: 0.3
 Buffer: 3 3 3 3
+
 
 Cycletime:
 Distributuion:	Norm	Norm	Norm	Norm	Norm
-Mean:		    1	    2	    3	    4	    1
-CV:		        0.1	    0.1	    0.1	    0.1	    0.1
+Mean:		    2	    3.5	    2	    2	    2
+CV:		        0.2	    0.2	    0.1	    0.5	    0.5
 Para3:          0       0       0       0       0
