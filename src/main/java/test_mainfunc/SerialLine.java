@@ -23,7 +23,8 @@ public class SerialLine {
     public int NbStage;
     public int[] Buffer;
     public StochNum[] CT;
-    public int Uj;
+    public int[] Uj;
+    public int[] Lj;
     public double THstar;
 
     //Sim_Output
@@ -55,12 +56,33 @@ public class SerialLine {
 
         System.out.println();
 
+        // scan J size
         scanner.next();
         this.NbStage=scanner.nextInt();
 
+        //scan Lowerbound Lj
         scanner.next();
-        this.Uj=scanner.nextInt();
+        this.Lj = new int [this.NbStage - 1];
+        int templj = scanner.nextInt();
+        for(int j=0;j< this.NbStage -1;j++)
+        {
+            this.Lj[j]= templj;
+        }
 
+        //scan upperbound Uj
+        scanner.next();
+        this.Uj = new int [this.NbStage - 1];
+        int tempuj = scanner.nextInt();
+        for(int j=0;j< this.NbStage -1;j++)
+        {
+            this.Uj[j]= tempuj;
+        }
+
+        //scan optimization TH*
+        scanner.next();
+        this.THstar=scanner.nextDouble();
+
+        //scan simulation buffer configuration
         this.Buffer = new int[this.NbStage - 1];
         scanner.next();
         for (int j = 0; j < this.NbStage - 1; j++)
@@ -68,6 +90,7 @@ public class SerialLine {
             this.Buffer[j]=scanner.nextInt();
         }
 
+        //scan distributions of machine processing time
         scanner.next();
         this.CT = new StochNum[this.NbStage];
         scanner.next();
@@ -206,6 +229,7 @@ public class SerialLine {
             }
         }
 
+        //for Bender purpose the buffer capacity must be obtained from current solution BJsol
         if(bendersuse)
         {
             for(int j=0;j< NbStage -1;j++){
@@ -491,6 +515,7 @@ public class SerialLine {
             double[] bar_Dij,
             boolean Stolletz) {
 
+        //ERICA: when theta is defined, put it as an input parameter
         double theta = 0;
 
         try {
@@ -525,31 +550,26 @@ public class SerialLine {
 
     public void MasterBenders() {
 
-        int J = this.NbStage;
-        int Uj = this.Uj;
-
         try {
-            //E: Model definition
+            //Environment definition
             cplex = new IloCplex();
 
-            //E: Variable definition
-
-            BJ = cplex.intVarArray(J-1,0, Uj);
-            DeltaBJrp = new IloNumVar[J-1][];
-
-            for (int j=0; j<J-1; j++)
+            //Variable definition
+            BJ = cplex.intVarArray(this.NbStage-1,this.Lj, this.Uj);
+            DeltaBJrp = new IloNumVar[this.NbStage-1][];
+            for (int j=0; j<this.NbStage-1; j++)
             {
-                DeltaBJrp[j] = cplex.intVarArray(this.Maxit,0,Uj);
+                DeltaBJrp[j] = cplex.intVarArray(this.Maxit,this.Lj,this.Uj);
             }
-            DeltaBJrm = new IloNumVar[J-1][];
-            for (int j=0; j<J-1; j++)
+            DeltaBJrm = new IloNumVar[this.NbStage-1][];
+            for (int j=0; j<this.NbStage-1; j++)
             {
-                DeltaBJrm[j] = cplex.intVarArray(this.Maxit,0,Uj);
+                DeltaBJrm[j] = cplex.intVarArray(this.Maxit,this.Lj,this.Uj);
             }
 
-            //E: objective function
+            //objective function
             this.objective = cplex.linearNumExpr();
-            for (int j=0; j<J-1; j++)
+            for (int j=0; j<this.NbStage-1; j++)
             {
                 this.objective.addTerm(1,BJ[j]);
                 for(int r = 0;r<this.Maxit;r++){
@@ -559,28 +579,6 @@ public class SerialLine {
             }
             cplex.addMinimize(this.objective);
 
-            //E: Delta definition constraints (22)
-//            for (int j=0; j<J-1; j++)
-////            {
-////                    IloLinearNumExpr sumBJ_expr = cplex.linearNumExpr();
-////                    IloRange rng;
-////                    sumBJ_expr.addTerm(1,DeltaBJrp[j][0]);
-////                    sumBJ_expr.addTerm(-1,BJ[j]);
-////                    rng = cplex.addGe(sumBJ_expr, -1*BJsol[j][0]);
-////                    rng.setName("deltaBJp" + j + "0");
-////
-////            }
-////
-////            //E: Delta definition constraints (23)
-////            for (int j=0; j<J-1; j++)
-////            {
-////                    IloLinearNumExpr sumDeltaBJ_expr = cplex.linearNumExpr();
-////                    IloRange rng;
-////                    sumDeltaBJ_expr.addTerm(1,DeltaBJrm[j][0]);
-////                    sumDeltaBJ_expr.addTerm(1,BJ[j]);
-////                    rng = cplex.addGe(sumDeltaBJ_expr, BJsol[j][0]);
-////                    rng.setName("deltaBJm" + j + "0");
-////            }
 
             //E: RISOLUZIONE DEL MODELLO
             if (cplex.solve())
@@ -589,8 +587,8 @@ public class SerialLine {
                 //finished=true;
 
                 //save current solution
-                this.BJsol = new int[J-1][this.Maxit];
-                for(int j=0;j<J-1;j++)
+                this.BJsol = new int[this.NbStage-1][this.Maxit];
+                for(int j=0;j<this.NbStage-1;j++)
                 {
                     //System.out.println(cplex.getValue(this.BJ[j]));
                     this.BJsol[j][0] = (int) cplex.getValue(this.BJ[j]);
@@ -615,57 +613,44 @@ public class SerialLine {
             double thetabar,
             boolean Stolletz) {
 
-        int J = this.NbStage;
         int n = jobs;
         //i define the last already explored iteration as nnint
         int nnint = numint -1;
 
         try {
-            ////E: insert new nnint-delta in objective function
-            //this.objective = cplex.linearNumExpr();
-//            for (int j=0; j<J-1; j++)
-//            {
-//                this.objective.addTerm(1, DeltaBJrp[j][nnint]);
-//                this.objective.addTerm(1, DeltaBJrm[j][nnint]);
-//            }
-//            cplex.addMinimize(this.objective);
-
-
-            //E: Delta definition constraints (22)
-            for (int j=0; j<J-1; j++)
+            //Delta definition constraints (22)
+            for (int j=0; j<this.NbStage-1; j++)
             {
                 IloLinearNumExpr sumBJ_expr = cplex.linearNumExpr();
                 IloRange rng;
                 sumBJ_expr.addTerm(1,DeltaBJrp[j][nnint]);
                 sumBJ_expr.addTerm(-1,BJ[j]);
-                /////////////////CHECK THE CORRECT ITERATION OF BJSOL
                 rng = cplex.addGe(sumBJ_expr, -1*BJsol[j][nnint]);
                 rng.setName("deltaBJp" + j + nnint);
-
             }
 
             //E: Delta definition constraints (23)
-            for (int j=0; j<J-1; j++)
+            for (int j=0; j<this.NbStage-1; j++)
             {
                 IloLinearNumExpr sumDeltaBJ_expr = cplex.linearNumExpr();
                 IloRange rng;
                 sumDeltaBJ_expr.addTerm(1,DeltaBJrm[j][nnint]);
                 sumDeltaBJ_expr.addTerm(1,BJ[j]);
-                /////////////////CHECK THE CORRECT ITERATION OF BJSOL
                 rng = cplex.addGe(sumDeltaBJ_expr, BJsol[j][nnint]);
                 rng.setName("deltaBJm" + j + nnint);
             }
 
             if(!Stolletz)
             {
+                // adding constraint(25)
                 double[] DeltapPar;
                 double[] DeltamPar;
-                DeltapPar = new double[J-1];
-                DeltamPar = new double[J-1];
+                DeltapPar = new double[this.NbStage-1];
+                DeltamPar = new double[this.NbStage-1];
 
-                mM_value mm = new mM_value(J, n, this.Uj, 0);
+                mM_value mm = new mM_value(this.NbStage, n, this.Uj, this.Lj);
 
-                for(int j=0;j<J -1;j++)
+                for(int j=0;j<this.NbStage -1;j++)
                 {
                     for (int i=0;i<n;i++)
                     {
@@ -675,7 +660,7 @@ public class SerialLine {
                 }
 
                 double tijpar=0.0;
-                for(int j=0;j<J -1;j++)
+                for(int j=0;j<this.NbStage -1;j++)
                 {
                     for (int i=0;i<n;i++)
                     {
@@ -683,12 +668,12 @@ public class SerialLine {
                     }
                 }
 
+                //E: if theta is an array, then change this formulation
                 double thetapar = thetabar/this.THstar;
-
 
                 IloLinearNumExpr sumBJcut_expr = cplex.linearNumExpr();
                 IloRange rng;
-                for (int j=0; j<J-1; j++)
+                for (int j=0; j<this.NbStage-1; j++)
                 {
                     sumBJcut_expr.addTerm(-DeltapPar[j],DeltaBJrp[j][nnint]);
                     sumBJcut_expr.addTerm(-DeltamPar[j],DeltaBJrm[j][nnint]);
@@ -698,12 +683,13 @@ public class SerialLine {
                 rng.setName("feascut of iter"+nnint);
 
             }
+            //if we don't want to use (25) but combinatorial cut:
             if(Stolletz)
             {
                 IloLinearNumExpr sumBJcut_expr = cplex.linearNumExpr();
                 IloRange rng;
                 int lastcapsum = 0;
-                for(int j=0;j< J-1;j++)
+                for(int j=0;j< this.NbStage-1;j++)
                 {
                     sumBJcut_expr.addTerm(1,BJ[j]);
                     lastcapsum = lastcapsum + this.BJsol[j][nnint];
@@ -713,7 +699,7 @@ public class SerialLine {
                 rng.setName("combcut of iter"+nnint);
             }
 
-            //E: Model solution
+            //Model solution
             if (cplex.solve())
             {
                 System.out.println("obj = "+cplex.getObjValue());

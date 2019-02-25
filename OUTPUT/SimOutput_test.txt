@@ -1,2 +1,12 @@
-Cycle time with simulation from 0: 2.2013075124871135
-Cycle time with simulation from steady state: 2.2013075124871135
+Cycle time with simulation from 0: 2.1976709451504166
+Cycle time with simulation from steady state: 2.1976709451504166
+Cycle time with Benders Decomposition: 2.1976709451504166
+total time CG: 0.29801Optimal Buffer: 0
+ 
+0
+ 
+0
+ 
+0
+ 
+Total number of iterations: 0
