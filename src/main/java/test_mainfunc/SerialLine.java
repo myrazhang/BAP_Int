@@ -48,6 +48,9 @@ public class SerialLine {
     public double[][][] wbarij;
     public double thetabar;
     public int totit;
+    double[][] DeltapPar;
+    double[][] DeltamPar;
+    double[] resc;
 
 
     // Create a new test_mainfunc.SerialLine from txt file
@@ -370,6 +373,7 @@ public class SerialLine {
             }
 
             this.OverallCT = (Dij[N - 1][NbStage - 1] - Dij[W - 1][NbStage - 1]) / (double)(N - W);
+
             //***************   SAVE bar_Sij, bar_Dij    ***************
             for (int j = 0; j < NbStage; j++) {
                 bar_Dij[j] = Dij[W - 1][j];
@@ -500,9 +504,9 @@ public class SerialLine {
                     this.wbarij[i][j][iter]=wij[i][j];
                 }
             }
-            /////////////////DEFINE HOW MUCH IS THETA FROM THE SIMULATION
-            thetabar=1;
+
         }
+        thetabar=N-W;
 
 
     }
@@ -519,14 +523,14 @@ public class SerialLine {
             double[] bar_Dij,
             boolean Stolletz) {
 
-        //ERICA: when theta is defined, put it as an input parameter
-        double theta = 0;
 
         try {
-
+            double theta = jobs - W;
             //run master problem
             this.MasterBenders(Stolletz);
             //run simulation (as subproblem)
+            DeltapPar = new double[this.NbStage-1][this.Maxit];
+            DeltamPar = new double[this.NbStage-1][this.Maxit];
             int numit = 0;
             this.SIM_Serial_BAS(jobs,W,tij,uij,vij,wij,sij,theta,bar_Sij,bar_Dij, numit,false,true);
             System.out.println("CT is:" + this.OverallCT );
@@ -631,16 +635,11 @@ public class SerialLine {
         int nnint = numint -1;
 
         try {
-            //Delta definition constraints (22)
 
 
             if(!Stolletz)
             {
-                // adding constraint(25)
-                double[] DeltapPar;
-                double[] DeltamPar;
-                DeltapPar = new double[this.NbStage-1];
-                DeltamPar = new double[this.NbStage-1];
+                // adding constraint(22)
 
                 for (int j=0; j<this.NbStage-1; j++)
                 {
@@ -663,14 +662,15 @@ public class SerialLine {
                     rng.setName("deltaBJm" + j + nnint);
                 }
 
-                mM_value mm = new mM_value(this.NbStage, n, this.Uj, this.Lj);
+                //constraint (25)
+                test_mainfunc.mM_value mm = new test_mainfunc.mM_value(this.NbStage, n, this.Uj, this.Lj);
 
                 for(int j=0;j<this.NbStage -1;j++)
                 {
                     for (int i=0;i<n;i++)
                     {
-                        DeltapPar[j]= DeltapPar[j] + this.wbarij[i][j][nnint]*mm.Mijk[i][j][BJsol[j][nnint]];
-                        DeltamPar[j]= DeltamPar[j] + this.wbarij[i][j][nnint]*mm.mijk[i][j][BJsol[j][nnint]];
+                        DeltapPar[j][nnint]= DeltapPar[j][nnint] + this.wbarij[i][j][nnint]*mm.Mijk[i][j][BJsol[j][nnint]];
+                        DeltamPar[j][nnint]= DeltamPar[j][nnint] + this.wbarij[i][j][nnint]*mm.mijk[i][j][BJsol[j][nnint]];
                     }
                 }
 
@@ -690,11 +690,11 @@ public class SerialLine {
                 IloRange rng;
                 for (int j=0; j<this.NbStage-1; j++)
                 {
-                    sumBJcut_expr.addTerm(-DeltapPar[j],DeltaBJrp[j][nnint]);
-                    sumBJcut_expr.addTerm(-DeltamPar[j],DeltaBJrm[j][nnint]);
+                    sumBJcut_expr.addTerm(-DeltapPar[j][nnint],DeltaBJrp[j][nnint]);
+                    sumBJcut_expr.addTerm(-DeltamPar[j][nnint],DeltaBJrm[j][nnint]);
                 }
-                double resc = thetapar - tijpar;
-                rng = cplex.addLe(sumBJcut_expr,resc);
+                resc[nnint] = thetapar - tijpar;
+                rng = cplex.addLe(sumBJcut_expr,resc[nnint]);
                 rng.setName("feascut of iter"+nnint);
 
             }
