@@ -20,18 +20,16 @@ public class mM_value {
     public int[] Lj;
 
 
-//    public mM_value(int m, int nbparts, int[] UB, int[] LB){
-    public mM_value(int m, int nbparts, int UB, int LB){
+    public mM_value(int m, int nbparts, int[] UB, int[] LB){
+//    public mM_value(int m, int nbparts, int UB, int LB){
         this.nbstage=m;
         this.N=nbparts;
         this.Uj= new int[m-1];
         this.Lj= new int[m-1];
 
         for(int j=1;j<=this.nbstage-1;j++){
-            //this.Uj[j-1]=UB[j-1];
-            //this.Lj[j-1]=LB[j-1];
-            this.Uj[j-1]=UB;
-            this.Lj[j-1]=LB;
+            this.Uj[j-1]=UB[j-1];
+            this.Lj[j-1]=LB[j-1];
         }
 
         this.Mijk=new double[this.N][this.nbstage-1][];
