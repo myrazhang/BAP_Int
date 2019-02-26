@@ -48,9 +48,11 @@ public class SerialLine {
     public double[][][] wbarij;
     public double thetabar;
     public int totit;
-    double[][] DeltapPar;
-    double[][] DeltamPar;
-    double[] resc;
+    public double[][] DeltapPar;
+    public double[][] DeltamPar;
+    public double[] resc;
+    public double[] actualDp;
+    public double[] actualDm;
 
 
     // Create a new test_mainfunc.SerialLine from txt file
@@ -240,7 +242,9 @@ public class SerialLine {
         if(bendersuse)
         {
             for(int j=0;j< NbStage -1;j++){
-                Buffer[j]=this.BJsol[j][iter];
+                Buffer[j]= this.BJsol[j][iter];
+
+                System.out.println("cap at stage j: "+j+ " is "+ Buffer[j]);
             }
         }
 
@@ -493,16 +497,24 @@ public class SerialLine {
 
                 }
             }
-            this.OverallCT = (Dij[N-1][NbStage-1]- Dij[W-1][NbStage-1])/ (double)(N-W);
-            this.ubarij = new double [N][NbStage][this.Maxit];
-            this.wbarij = new double [N][NbStage][this.Maxit];
-            for (int j=0; j<this.NbStage;j++)
+
+
+        }
+        this.OverallCT = (Dij[N-1][NbStage-1]- Dij[W-1][NbStage-1])/ (double)(N-W);
+
+        double tempw =0.0;
+        double tempu=0.0;
+        for (int j=0; j<this.NbStage;j++)
+        {
+            tempw =0.0;
+            tempu = 0.0;
+            for(int i=0; i<N;i++)
             {
-                for(int i=0; i<N;i++)
-                {
-                    this.ubarij[i][j][iter]=uij[i][j];
-                    this.wbarij[i][j][iter]=wij[i][j];
-                }
+
+                this.ubarij[i][j][iter]=uij[i][j];
+                this.wbarij[i][j][iter]=wij[i][j];
+                tempw = tempw + wij[i][j];
+                tempu = tempu + uij[i][j];
             }
 
         }
@@ -526,11 +538,15 @@ public class SerialLine {
 
         try {
             double theta = jobs - W;
+            this.BJsol = new int[this.NbStage-1][this.Maxit];
             //run master problem
             this.MasterBenders(Stolletz);
             //run simulation (as subproblem)
+
             DeltapPar = new double[this.NbStage-1][this.Maxit];
             DeltamPar = new double[this.NbStage-1][this.Maxit];
+            actualDp = new double[this.NbStage-1];
+            actualDm = new double[this.NbStage-1];
             int numit = 0;
             this.SIM_Serial_BAS(jobs,W,tij,uij,vij,wij,sij,theta,bar_Sij,bar_Dij, numit,false,true);
             System.out.println("CT is:" + this.OverallCT );
@@ -571,12 +587,12 @@ public class SerialLine {
                 DeltaBJrp = new IloNumVar[this.NbStage-1][];
                 for (int j=0; j<this.NbStage-1; j++)
                 {
-                    DeltaBJrp[j] = cplex.intVarArray(this.Maxit,this.DeltaLj,this.DeltaLj);
+                    DeltaBJrp[j] = cplex.intVarArray(this.Maxit,0,this.DeltaUj);
                 }
                 DeltaBJrm = new IloNumVar[this.NbStage-1][];
                 for (int j=0; j<this.NbStage-1; j++)
                 {
-                    DeltaBJrm[j] = cplex.intVarArray(this.Maxit,this.DeltaLj,this.DeltaUj);
+                    DeltaBJrm[j] = cplex.intVarArray(this.Maxit,0,this.DeltaUj);
                 }
             }
 
@@ -604,10 +620,10 @@ public class SerialLine {
                 //finished=true;
 
                 //save current solution
-                this.BJsol = new int[this.NbStage-1][this.Maxit];
+
                 for(int j=0;j<this.NbStage-1;j++)
                 {
-                    this.BJsol[j][0] = (int) cplex.getValue(this.BJ[j]);
+                    this.BJsol[j][0] = (int) (cplex.getValue(this.BJ[j]));
                     System.out.println("cap in "+ j + " is " +this.BJsol[j][0]);
                 }
             }
@@ -640,7 +656,6 @@ public class SerialLine {
             if(!Stolletz)
             {
                 // adding constraint(22)
-
                 for (int j=0; j<this.NbStage-1; j++)
                 {
                     IloLinearNumExpr sumBJ_expr = cplex.linearNumExpr();
@@ -663,19 +678,24 @@ public class SerialLine {
                 }
 
                 //constraint (25)
-                test_mainfunc.mM_value mm = new test_mainfunc.mM_value(this.NbStage, n, this.Uj, this.Lj);
+                mM_value mm = new test_mainfunc.mM_value(this.NbStage, n, this.Uj, this.Lj);
 
                 for(int j=0;j<this.NbStage -1;j++)
                 {
                     for (int i=0;i<n;i++)
                     {
-                        DeltapPar[j][nnint]= DeltapPar[j][nnint] + this.wbarij[i][j][nnint]*mm.Mijk[i][j][BJsol[j][nnint]];
-                        DeltamPar[j][nnint]= DeltamPar[j][nnint] + this.wbarij[i][j][nnint]*mm.mijk[i][j][BJsol[j][nnint]];
+                       // System.out.println("wbar in i " + i + " j " + j + " is " + this.wbarij[i][j][nnint]);
+                        // System.out.println("M in i " + i + " j " + j + " is " + mm.Mijk[i][j][BJsol[j][nnint]]);
+                       DeltapPar[j][nnint]= DeltapPar[j][nnint] + this.wbarij[i][j][nnint]*mm.Mijk[i][j][BJsol[j][nnint]];
+                       DeltamPar[j][nnint]= DeltamPar[j][nnint] + this.wbarij[i][j][nnint]*mm.mijk[i][j][BJsol[j][nnint]];
                     }
+                    System.out.println("DeltapPar in " + j + " is " + DeltapPar[j][nnint]);
+                    System.out.println("DeltamPar in " + j + " is " + DeltamPar[j][nnint]);
                 }
 
+
                 double tijpar=0.0;
-                for(int j=0;j<this.NbStage -1;j++)
+                for(int j=0;j<this.NbStage;j++)
                 {
                     for (int i=0;i<n;i++)
                     {
@@ -691,11 +711,12 @@ public class SerialLine {
                 for (int j=0; j<this.NbStage-1; j++)
                 {
                     sumBJcut_expr.addTerm(-DeltapPar[j][nnint],DeltaBJrp[j][nnint]);
-                    sumBJcut_expr.addTerm(-DeltamPar[j][nnint],DeltaBJrm[j][nnint]);
+                    sumBJcut_expr.addTerm(+DeltamPar[j][nnint],DeltaBJrm[j][nnint]);
                 }
-                resc[nnint] = thetapar - tijpar;
+                this.resc[nnint] = thetapar - tijpar;
                 rng = cplex.addLe(sumBJcut_expr,resc[nnint]);
                 rng.setName("feascut of iter"+nnint);
+                System.out.println("resc: " + this.resc[nnint]);
 
             }
             //if we don't want to use (25) but combinatorial cut:
@@ -720,12 +741,14 @@ public class SerialLine {
             {
                 System.out.println("obj = "+cplex.getObjValue());
                 //finished=true;
-                System.out.println("obj = "+cplex.getObjValue());
 
                 //save current solution
                 for(int j=0;j<this.NbStage-1;j++)
                 {
-                    this.BJsol[j][nnint+1] = (int) cplex.getValue(this.BJ[j]);
+                    this.BJsol[j][nnint+1] =  (int) (this.BJsol[j][nnint] +  cplex.getValue(this.DeltaBJrp[j][nnint]) - cplex.getValue(this.DeltaBJrm[j][nnint]));
+                    System.out.println("last bj is: " + this.BJsol[j][nnint]);
+                    System.out.println("deltap is: " + cplex.getValue(this.DeltaBJrp[j][nnint]));
+                    System.out.println("deltam is: " + cplex.getValue(this.DeltaBJrm[j][nnint]));
                 }
 
             }

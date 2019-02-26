@@ -1,11 +1,11 @@
-NbStage: 5
-Lj: 0
+NbStage: 3
+Lj: 1
 Uj: 80
-THstar: 0.4545
-Buffer: 3 3 3 3
+THstar: 0.4845
+Buffer: 3 3
 
 Cycletime:
-Distribution:	Norm	Norm	Norm	Norm	Norm
-Mean:		    1	    2	    3	    4	    1
-CV:		        0.1	    0.1	    0.1	    0.1	    0.1
-Para3:          0       0       0       0       0
+Distribution:	Norm	Norm	Norm	
+Mean:		    2	    2	    2	
+CV:		        0.5	    0.5	    0.5	   
+Para3:          0       0       0   
