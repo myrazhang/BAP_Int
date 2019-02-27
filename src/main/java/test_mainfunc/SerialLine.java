@@ -34,7 +34,7 @@ public class SerialLine {
     public double TH;
     public double[] Pblock;
     public double[] Pstarve;
-    public int Maxit = 100;
+    public int Maxit = 10;
 
     //cplex public variables
     public IloCplex cplex;
@@ -241,6 +241,7 @@ public class SerialLine {
         //for Bender purpose the buffer capacity must be obtained from current solution BJsol
         if(bendersuse)
         {
+            System.out.println("simulation - it:" + iter);
             for(int j=0;j< NbStage -1;j++){
                 Buffer[j]= this.BJsol[j][iter];
 
@@ -371,10 +372,10 @@ public class SerialLine {
                 }
             }
 
-            for(int j=0;j<NbStage-1;j++)
+            /*for(int j=0;j<NbStage-1;j++)
             {
                 System.out.println("buffer at " + j + " is: " + Buffer[j]);
-            }
+            }*/
 
             this.OverallCT = (Dij[N - 1][NbStage - 1] - Dij[W - 1][NbStage - 1]) / (double)(N - W);
 
@@ -594,6 +595,22 @@ public class SerialLine {
                 {
                     DeltaBJrm[j] = cplex.intVarArray(this.Maxit,0,this.DeltaUj);
                 }
+
+               String label;
+                String label1;
+                String label2;
+                for (int j=0; j<this.NbStage-1; j++)
+                {
+                    for (int r=0; r<this.Maxit; r++)
+                    {
+                        label = "Deltap_" + j + r;
+                        DeltaBJrp[j][r] = cplex.intVar(0, this.DeltaUj,label);
+                        label1 = "Deltam_" + j + r;
+                        DeltaBJrm[j][r] = cplex.intVar(0, this.DeltaUj,label1);
+                    }
+                    label2 = "b_"+j;
+                    BJ[j] = cplex.intVar(this.Lj[j],this.Uj[j],label2);
+                }
             }
 
 
@@ -601,7 +618,7 @@ public class SerialLine {
             this.objective = cplex.linearNumExpr();
             for (int j=0; j<this.NbStage-1; j++)
             {
-                this.objective.addTerm(1,BJ[j]);
+                //this.objective.addTerm(1,BJ[j]);
                 if(!Stolletz)
                 {
                     for(int r = 0;r<this.Maxit;r++){
@@ -623,8 +640,9 @@ public class SerialLine {
 
                 for(int j=0;j<this.NbStage-1;j++)
                 {
-                    this.BJsol[j][0] = (int) (cplex.getValue(this.BJ[j]));
-                    System.out.println("cap in "+ j + " is " +this.BJsol[j][0]);
+                    //this.BJsol[j][0] = (int) (cplex.getValue(this.BJ[j]));
+                    this.BJsol[j][0] = this.Lj[j];
+                    System.out.println("Master - it: 0 - cap in "+ j + " is " +this.BJsol[j][0]);
                 }
             }
             else
@@ -675,6 +693,18 @@ public class SerialLine {
                     sumDeltaBJ_expr.addTerm(1,BJ[j]);
                     rng = cplex.addGe(sumDeltaBJ_expr, BJsol[j][nnint]);
                     rng.setName("deltaBJm" + j + nnint);
+                }
+
+                //E: bj definition constraints (new one)
+                for (int j=0; j<this.NbStage-1; j++)
+                {
+                    IloLinearNumExpr singlebj_expr = cplex.linearNumExpr();
+                    IloRange rng;
+                    singlebj_expr .addTerm(1,BJ[j]);
+                    singlebj_expr .addTerm(-1,DeltaBJrp[j][nnint]);
+                    singlebj_expr .addTerm(1,DeltaBJrm[j][nnint]);
+                    rng = cplex.addEq(singlebj_expr, BJsol[j][nnint]) ;
+                    rng.setName("bj_def" + j + nnint);
                 }
 
                 //constraint (25)
@@ -741,14 +771,22 @@ public class SerialLine {
             {
                 System.out.println("obj = "+cplex.getObjValue());
                 //finished=true;
-
+                String program = System.getProperty("user.dir");
+                String prova = program + "\\OUTPUT\\model.lp";
+                cplex.exportModel(prova);
                 //save current solution
                 for(int j=0;j<this.NbStage-1;j++)
                 {
-                    this.BJsol[j][nnint+1] =  (int) (this.BJsol[j][nnint] +  cplex.getValue(this.DeltaBJrp[j][nnint]) - cplex.getValue(this.DeltaBJrm[j][nnint]));
+                    //this.BJsol[j][nnint+1] =  (int) (this.BJsol[j][nnint] +  cplex.getValue(this.DeltaBJrp[j][nnint]) - cplex.getValue(this.DeltaBJrm[j][nnint]));
+                    this.BJsol[j][nnint+1] =  (int)  cplex.getValue(this.BJ[j]);
                     System.out.println("last bj is: " + this.BJsol[j][nnint]);
-                    System.out.println("deltap is: " + cplex.getValue(this.DeltaBJrp[j][nnint]));
-                    System.out.println("deltam is: " + cplex.getValue(this.DeltaBJrm[j][nnint]));
+                    System.out.println("current bj is: " + cplex.getValue(this.BJ[j]));
+                    for(int r=0;r<this.Maxit;r++)
+                    {
+                        System.out.println("deltap in j " + j + " and r "+r +" is: " + cplex.getValue(this.DeltaBJrp[j][r]));
+                        System.out.println("deltam in j " + j + " and r "+r +" is: "  + cplex.getValue(this.DeltaBJrm[j][r]));
+                    }
+
                 }
 
             }
