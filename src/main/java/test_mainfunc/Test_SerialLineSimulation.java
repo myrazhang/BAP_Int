@@ -38,40 +38,18 @@ public class Test_SerialLineSimulation {
         // Simulation parameters
         int N=10000;
         int W=1000;
+
         // System read from INPUT file
         SerialLine mySystem= new SerialLine(in_SystemFile);
         double[][] tij=new double[N][mySystem.NbStage];
-        int[][] uij=new int[N][mySystem.NbStage];
-        int[][] vij=new int[N][mySystem.NbStage];
-        int[][] wij=new int[N][mySystem.NbStage];
-        int[][] sij=new int[N][mySystem.NbStage];
-        double[] bar_Dij=new double[mySystem.NbStage];
-        double thetapar=0.0;
-        mySystem.ubarij = new double [N][mySystem.NbStage][mySystem.Maxit];
-        mySystem.wbarij = new double [N][mySystem.NbStage][mySystem.Maxit];
         mySystem.resc = new double [mySystem.Maxit];
-        int B = 0;
-        for (int j = 0; j < mySystem.NbStage - 1; j++) {
-            B = max(B, mySystem.Buffer[j]);
-        }
-        double[][] bar_Sij = new double [B][mySystem.NbStage];
-
         mySystem.ProcTimeGeneration(N,tij);
-        //mySystem.SIM_Serial_BAS(N,W,tij,uij,vij,wij,sij,thetapar,bar_Sij,bar_Dij,0,false, false);
 
         PrintWriter writer = new PrintWriter(outRes, true);
-        // cycle time is calculated between W and N, whatever value SteadyState will take.
-        //writer.print("Cycle time with simulation from 0: ");
-        //writer.println(mySystem.OverallCT);
-
-       // mySystem.SIM_Serial_BAS(N,W,tij,uij,vij,wij,sij,thetapar,bar_Sij,bar_Dij,0,false,false );
-        //writer.print("Cycle time with simulation from steady state: ");
-        //writer.println(mySystem.OverallCT);
-
 
         //optimization part
         long StartOpt = System.currentTimeMillis();
-        mySystem.solveBender(N,W,tij,uij,vij,wij,sij,bar_Sij,bar_Dij,false);
+        mySystem.solveBender(N,W,tij,false);
         long elapsedTimeMillisC = System.currentTimeMillis()- StartOpt;
         float elapsedTimeSecC = elapsedTimeMillisC/1000F;
         double OptTime = elapsedTimeSecC;
@@ -87,7 +65,7 @@ public class Test_SerialLineSimulation {
 
         writer.print("Optimal Buffer: ");
         for(int j=0;j<mySystem.NbStage-1;j++){
-            writer.println(mySystem.BJsol[j][mySystem.totit]);
+            writer.println(mySystem.Buffer[j]);
             writer.println(" ");
         }
 
