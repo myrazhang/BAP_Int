@@ -1,0 +1,12 @@
+NbStage: 7
+Lj: 1
+Uj: 100
+THstar: 0.09
+Buffer: 3 3 3 3 3 3
+
+Cycletime:
+Distribution:	Beta	Beta 	Beta 	Beta 	Beta 	Beta 	Beta 	
+Alpha:		2	2	2	2	2	2	2	
+Beta:		7.65	7.65	7.65	7.65	7.65	7.65	7.65	
+lower_a:        2.79	2.79	9.79	9.79	2.79	2.79	2.79		
+lower_b:	3.79	3.79	10.79	10.79	3.79	3.79	3.79
