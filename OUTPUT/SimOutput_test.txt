@@ -1,6 +1,6 @@
-Cycle time with Benders Decomposition: 2.1374214321568377
-total time CG: 151.52001Optimal Buffer: 2
+Cycle time with Benders Decomposition: 10.005813444365783
+total time CG: 1.117Optimal Buffer: 1
  
-5
+1
  
 Total number of iterations: 19

@@ -14,7 +14,7 @@ public class Test_SerialLineSimulation {
         String programPath = System.getProperty("user.dir");
 
         //***   Input files   *********************************************************
-        String in_System = programPath + "\\INPUT\\SerialLine_test.txt";
+        String in_System = programPath + "\\INPUT\\SerialLine_test_beta.txt";
         InputStream in_SystemFile = null;
         try {
             in_SystemFile = new FileInputStream(in_System);
@@ -34,6 +34,7 @@ public class Test_SerialLineSimulation {
             e.printStackTrace();
             System.exit(-1);
         }
+
 
         // Simulation parameters
         int N=10000;

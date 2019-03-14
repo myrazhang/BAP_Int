@@ -1,0 +1,12 @@
+NbStage: 3
+Lj: 1
+Uj: 10
+THstar: 0.4845
+Buffer: 3 3
+
+Cycletime:
+Distribution:	Beta	Beta	Beta
+Alpha:		    7.65	7.65	7.65
+Beta:		    2	    2	    2
+a:              6.21    9.21    6.21
+b:              7.21    10.21   7.21

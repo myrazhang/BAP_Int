@@ -13,6 +13,7 @@ import java.util.Scanner;
 import ilog.concert.*;
 import ilog.cplex.*;
 
+import org.apache.commons.math3.distribution.BetaDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 // import org.apache.commons.math3.distribution.UniformRealDistribution;
 // import org.apache.commons.math3.distribution.WeibullDistribution;
@@ -130,6 +131,11 @@ public class SerialLine {
         {
             this.CT[j].Para3=scanner.nextDouble();
         }
+        scanner.next();
+        for (int j = 0; j < this.NbStage; j++)
+        {
+            this.CT[j].Para4=scanner.nextDouble();
+        }
     }
 
     // Processing time generation
@@ -156,7 +162,15 @@ public class SerialLine {
                     p = pt.sample();
                 }
             }
-            // else if(CT[j].distribution.equals("Exp")){...}
+            else if(CT[j].distribution.equals("Beta")){
+                BetaDistribution pt=new BetaDistribution(generator, CT[j].Para1, CT[j].Para2);
+
+                double p = pt.sample();
+                for (int i = 0; i < N; i++) {
+                    pij[i][j] =CT[j].Para3+ p * (CT[j].Para4 - CT[j].Para3);
+                    p = pt.sample();
+                }
+            }
             // else if(CT[j].distribution.equals("Exp")){...}
         }
     }
