@@ -152,7 +152,6 @@ public class SerialLine {
             //CT[j].Para2 -  coefficient of variance
             if (CT[j].distribution.equals("Norm")) {
                 NormalDistribution pt = new NormalDistribution(generator, CT[j].Para1, CT[j].Para1 * CT[j].Para2);
-
                 double p = pt.sample();
                 for (int i = 0; i < N; i++) {
                     while (p < 0 || p > 2 * CT[j].Para1) {
