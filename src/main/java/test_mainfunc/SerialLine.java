@@ -35,7 +35,8 @@ public class SerialLine {
     //Sim_Output
     public double OverallCT;
     public double TH;
-    public int Maxit = 20;
+    public int Maxit = 20000;
+    public int numit;
 
     public double[][] bar_Sij;
     public double[] bar_Dij;
@@ -255,17 +256,6 @@ public class SerialLine {
             }
         }
 
-        //for Bender purpose the buffer capacity must be obtained from current solution BJsol
-        /*if(bendersuse)
-        {
-            System.out.println("simulation - it:" + iter);
-            for(int j=0;j< NbStage -1;j++){
-                Buffer[j]= this.BJsol[j][iter];
-
-                System.out.println("cap at stage j: "+j+ " is "+ Buffer[j]);
-            }
-        }*/
-
         if (!SteadyState) {
 
             /////////////////////////////////////////////////////////////////////////////////////////////
@@ -397,14 +387,14 @@ public class SerialLine {
             this.OverallCT = (Dij[N - 1][NbStage - 1] - Dij[W - 1][NbStage - 1]) / (double)(N - W);
 
             //***************   SAVE bar_Sij, bar_Dij    ***************
-            for (int j = 0; j < NbStage; j++) {
+            /*for (int j = 0; j < NbStage; j++) {
                 bar_Dij[j] = Dij[W - 1][j];
                 if (j != NbStage -1) {
                     for (int i = 0 ; i < this.Uj[j]; i++) {
                         bar_Sij[i][j+1] = Sij[W- Uj[j]+i][j+1];
                     }
                 }
-            }
+            }*/
 
 
         }
@@ -559,26 +549,25 @@ public class SerialLine {
             this.MasterBenders(Stolletz);
 
             //run simulation (as subproblem)
-            int numit = 0;
+            numit = 0;
             this.SIM_Serial_BAS(jobs,W,tij,this.ubarij,vij,this.wbarij,sij,this.bar_Sij,this.bar_Dij, false);
             System.out.println("CT is:" + this.OverallCT );
             for(int j=0;j<this.NbStage-1;j++){
                 this.BJsol[j][0]=this.Buffer[j];
             }
-            this.TH = 1/this.OverallCT;
-            while((this.TH < this.THstar) && (numit < this.Maxit-1))
+            this.TH = (double)1/this.OverallCT;
+            mM_value mm = new test_mainfunc.mM_value(this.NbStage, jobs, this.Uj, this.Lj);
+            mm.get_mM_value(tij);
+            while((this.THstar-this.TH > 0.0001) && (numit < this.Maxit-1))
             {
                 numit++;
-                this.AddFeasibilityCut(jobs,numit, tij, theta, Stolletz);
-                this.SIM_Serial_BAS(jobs,W,tij,this.ubarij,vij,this.wbarij,sij,this.bar_Sij,this.bar_Dij,true);
+                this.AddFeasibilityCut(jobs,numit, tij, theta, Stolletz, mm);
+                this.SIM_Serial_BAS(jobs,W,tij,this.ubarij,vij,this.wbarij,sij,this.bar_Sij,this.bar_Dij,false);
                 this.TH = 1/this.OverallCT;
-                System.out.println("simulated TH" + this.TH );
             }
             this.totit = numit;
 
             cplex.end();
-
-            System.out.println("num. iteraz: " + numit);
         }
 
         catch (Exception exc) {
@@ -712,7 +701,8 @@ public class SerialLine {
             int numint,
             double[][] tij,
             double thetabar,
-            boolean Stolletz) {
+            boolean Stolletz,
+            mM_value mm) {
 
         //i define the last already explored iteration as nnint
         int nnint = numint -1;
@@ -722,85 +712,6 @@ public class SerialLine {
 
             if(!Stolletz)
             {
-                //*****************************************************************************
-                // adding constraint(22)
-                /*for (int j=0; j<this.NbStage-1; j++)
-                {
-                    IloLinearNumExpr sumBJ_expr = cplex.linearNumExpr();
-                    IloRange rng;
-                    sumBJ_expr.addTerm(1,DeltaBJrp[j][nnint]);
-
-                    //test_MZ
-                    //sumBJ_expr.addTerm(-1,BJ[j]);
-                    sumBJ_expr.addTerm(-1,XJ[j]);
-                    //////////////////////////////////////////////////////////////////////////////
-
-                    rng = cplex.addGe(sumBJ_expr, -1*this.Buffer[j]);
-                    rng.setName("deltaBJp" + j + nnint);
-                }*/
-
-                //E: Delta definition constraints (23)
-                /*for (int j=0; j<this.NbStage-1; j++)
-                {
-                    IloLinearNumExpr sumDeltaBJ_expr = cplex.linearNumExpr();
-                    IloRange rng;
-                    sumDeltaBJ_expr.addTerm(1,DeltaBJrm[j][nnint]);
-
-                    //test_MZ
-                    //sumDeltaBJ_expr.addTerm(1,BJ[j]);
-                    sumDeltaBJ_expr.addTerm(1,XJ[j]);
-                    ///////////////////////////////////////////////
-                    rng = cplex.addGe(sumDeltaBJ_expr, this.Buffer[j]);
-                    rng.setName("deltaBJm" + j + nnint);
-                }*/
-
-                //E: bj definition constraints (new one)
-                /*for (int j=0; j<this.NbStage-1; j++)
-                {
-                    IloLinearNumExpr singlebj_expr = cplex.linearNumExpr();
-                    IloRange rng;
-
-                    //test_MZ
-                    //singlebj_expr .addTerm(1,BJ[j]);
-                    singlebj_expr .addTerm(1,XJ[j]);
-                    /////////////////////////////////////////////////////////////////////
-
-                    singlebj_expr .addTerm(-1,DeltaBJrp[j][nnint]);
-                    singlebj_expr .addTerm(1,DeltaBJrm[j][nnint]);
-                    rng = cplex.addGe(singlebj_expr, BJsol[j][nnint]) ;
-                    rng.setName("bj_def" + j + nnint);
-                }*/
-
-
-
-                //test_MZ
-
-                ///*************************MP-alter1 ****************************************//////////////////////////
-                /*for (int j=0; j<this.NbStage-1; j++)                                                          ////////
-                {                                                                                               ////////
-                    IloLinearNumExpr sumBJ_expr = cplex.linearNumExpr();                                        ////////
-                    IloRange rng;                                                                               ////////
-                    sumBJ_expr.addTerm(1,DeltaBJrp[j][nnint]);                                                  ////////
-                    sumBJ_expr.addTerm(-1,XJ[j]);                                                               ////////
-                    rng = cplex.addGe(sumBJ_expr, -1*this.BJsol[j][nnint]);                                     ////////
-                    rng.setName("deltaBJp" + j + nnint);                                                        ////////
-                }                                                                                               ////////
-                //MP-alter1
-                for (int j=0; j<this.NbStage-1; j++)                                                            ////////
-                {                                                                                               ////////
-                    IloLinearNumExpr sumDeltaBJ_expr = cplex.linearNumExpr();                                   ////////
-                    IloRange rng;                                                                               ////////
-                    sumDeltaBJ_expr.addTerm(1,DeltaBJrm[j][nnint]);                                             ////////
-                    sumDeltaBJ_expr.addTerm(1,XJ[j]);                                                           ////////
-                    rng = cplex.addGe(sumDeltaBJ_expr, this.BJsol[j][nnint]);                                   ////////
-                    rng.setName("deltaBJm" + j + nnint);                                                        ////////
-                }*/                                                                                             ////////
-                ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
                 ///*************************MP-alter3 ****************************************//////////////////////////
                 for (int j=0; j<this.NbStage-1; j++)                                                            ////////
                 {                                                                                               ////////
@@ -809,7 +720,7 @@ public class SerialLine {
                     singlebj_expr .addTerm(this.Uj[j]-BJsol[j][nnint],YJrp[j][nnint]);                      ////////
                     singlebj_expr .addTerm(-1,DeltaBJrp[j][nnint]);                                         ////////
                     rng = cplex.addGe(singlebj_expr, 0) ;                                                   ////////
-                    rng.setName("def: Deltap_" + (j+1) +'^'+ (nnint+1));                                            ////////
+                    rng.setName("def: Deltap_" + (j+1) +'^'+ (nnint+1));                                        ////////
                 }                                                                                               ////////
                 //MP-alter3
                 for (int j=0; j<this.NbStage-1; j++)                                                            ////////
@@ -820,7 +731,7 @@ public class SerialLine {
                     singlebj_expr .addTerm(this.BJsol[j][nnint],YJrm[j][nnint]);                                ////////
                     singlebj_expr .addTerm(-1,DeltaBJrm[j][nnint]);                                         ////////
                     rng = cplex.addGe(singlebj_expr, 0) ;                                                   ////////
-                    rng.setName("def: Deltam_" + (j+1) +'^'+ (nnint+1));                                            ////////
+                    rng.setName("def: Deltam_" + (j+1) +'^'+ (nnint+1));                                        ////////
                 }                                                                                               ////////
                 //MP-alter3
                 for (int j=0; j<this.NbStage-1; j++)                                                            ////////
@@ -831,7 +742,7 @@ public class SerialLine {
                     singlebj_expr .addTerm(1,YJrm[j][nnint]);                                               ////////
                     singlebj_expr .addTerm(1,YJrp[j][nnint]);                                               ////////
                     rng = cplex.addLe(singlebj_expr, 1) ;                                                   ////////
-                    rng.setName("Sum: YpYm_" + (j+1) +'^'+ (nnint+1));                                              ////////
+                    rng.setName("Sum: YpYm_" + (j+1) +'^'+ (nnint+1));                                          ////////
                 }                                                                                               ////////
                 //MP-alter3
                 for (int j=0; j<this.NbStage-1; j++)                                                            ////////
@@ -843,7 +754,7 @@ public class SerialLine {
                     singlebj_expr .addTerm(-1,DeltaBJrp[j][nnint]);                                         ////////
                     singlebj_expr .addTerm(+1,DeltaBJrm[j][nnint]);                                         ////////
                     rng = cplex.addGe(singlebj_expr, BJsol[j][nnint]) ;                                         ////////
-                    rng.setName("def: bj_" + (j+1) +'^'+ (nnint+1));                                                ////////
+                    rng.setName("def: bj_" + (j+1) +'^'+ (nnint+1));                                            ////////
                 }                                                                                               ////////
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -851,8 +762,6 @@ public class SerialLine {
 
 
                 //constraint (25)
-                mM_value mm = new test_mainfunc.mM_value(this.NbStage, n, this.Uj, this.Lj);
-
                 for(int j=0;j<this.NbStage -1;j++)
                 {
                     for (int i=0;i<n;i++)
@@ -927,7 +836,7 @@ public class SerialLine {
                 }
 
                 //test_MZ : print out the model and the solution ****  ////////////////////////////////////////
-                System.out.print(cplex.getModel());                                                     ///////
+                /*System.out.print(cplex.getModel());                                                   ///////
                 System.out.println("The solution in iteration "+ nnint+1+"is:");                        ///////
                 System.out.print("Bj: ");                                                               ///////
                 for(int j=0;j<this.NbStage-1;j++){                                                      ///////
@@ -945,7 +854,7 @@ public class SerialLine {
                     }                                                                                   ///////
                 }                                                                                       ///////
                                                                                                         ///////
-                System.out.println();                                                                   ///////
+                System.out.println();*/                                                                 ///////
                 ///////////////////////////////////////////////////////////////////////////////////////////////
             }
             else

@@ -1,8 +1,8 @@
 NbStage: 3
 Lj: 1
-Uj: 10
-THstar: 0.4845
-Buffer: 3 3
+Uj: 20
+THstar: 0.48
+Buffer: 1 1
 
 Cycletime:
 Distribution:	Norm	Norm	Norm	

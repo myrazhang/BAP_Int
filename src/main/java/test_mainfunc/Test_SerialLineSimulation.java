@@ -14,7 +14,7 @@ public class Test_SerialLineSimulation {
         String programPath = System.getProperty("user.dir");
 
         //***   Input files   *********************************************************
-        String in_System = programPath + "\\INPUT\\SerialLine_test_beta.txt";
+        String in_System = programPath + "\\INPUT\\SerialLine_test.txt";
         InputStream in_SystemFile = null;
         try {
             in_SystemFile = new FileInputStream(in_System);
@@ -38,7 +38,7 @@ public class Test_SerialLineSimulation {
 
         // Simulation parameters
         int N=10000;
-        int W=1000;
+        int W=1;
 
         // System read from INPUT file
         SerialLine mySystem= new SerialLine(in_SystemFile);
@@ -63,15 +63,27 @@ public class Test_SerialLineSimulation {
         df.setRoundingMode(RoundingMode.CEILING);
         writer.write("total time CG: ");
         writer.write(df.format(OptTime));
+        writer.println();
 
         writer.print("Optimal Buffer: ");
         for(int j=0;j<mySystem.NbStage-1;j++){
-            writer.println(mySystem.Buffer[j]);
-            writer.println(" ");
+            writer.print(mySystem.Buffer[j]);
+            writer.print(" ");
         }
+        writer.println();
 
         writer.print("Total number of iterations: ");
         writer.println(mySystem.totit);
+
+        writer.println("BAP of each iteration: ");
+        for(int k=0;k<mySystem.numit;k++){
+            for(int j=0;j<mySystem.NbStage-1;j++){
+                writer.print(mySystem.BJsol[j][k]);
+                writer.print(' ');
+            }
+            writer.println();
+        }
+
 
         try {
             outRes.close();
