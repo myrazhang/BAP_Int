@@ -55,6 +55,7 @@ public class SerialLine {
     public IloNumVar[][] YJrp;
     public IloNumVar[][] YJrm;
     public IloNumVar[] XJ;
+    public IloNumVar[][] ZJK;
 
     // Solutions from all iterations
     public int totit;
@@ -227,7 +228,10 @@ public class SerialLine {
             }
         }
 
-
+        for (int j = 0; j < NbStage-1; j++)
+        {
+            System.out.println("Buffer at j " + j + " is: "+ Buffer[j]);
+        }
 
         //***************************************
         //********** SIM ERG variables   ********
@@ -509,6 +513,7 @@ public class SerialLine {
 
         }
         this.OverallCT = (Dij[N-1][NbStage-1]- Dij[W-1][NbStage-1])/ (double)(N-W);
+        System.out.println("OverallCT" + this.OverallCT);
 
         /*for (int j=0; j<this.NbStage;j++)
         {
@@ -641,6 +646,14 @@ public class SerialLine {
                 }
             }
 
+            if(Stolletz)
+            {
+                ZJK = new IloNumVar[this.NbStage-1][];
+                for (int j=0; j<this.NbStage-1; j++)
+                {
+                    ZJK[j] = cplex.boolVarArray(this.Uj[0]);
+                }
+            }
 
             //objective function
             this.objective = cplex.linearNumExpr();
@@ -665,6 +678,37 @@ public class SerialLine {
                 }*/                                                                 /////////
                 /////////////////////////////////////////////////////////////////////////////
             }
+
+            if(Stolletz)
+            {
+                //constraint (8) Stolletz
+                for (int j=0; j<this.NbStage-1; j++)
+                {
+                    IloLinearNumExpr sumzjk_expr = cplex.linearNumExpr();
+                    IloRange rng;
+                    for (int k=0; k<this.Uj[0]; k++)
+                    {
+                        sumzjk_expr.addTerm(1,ZJK[j][k]);
+                    }
+                    rng = cplex.addEq(sumzjk_expr,1.0);
+                    rng.setName("sumk" + j);
+                }
+
+                //constraint (9) Stolletz
+                for (int j=0; j<this.NbStage-1; j++)
+                {
+                    IloLinearNumExpr sumzjk_expr = cplex.linearNumExpr();
+                    IloRange rng;
+                    sumzjk_expr.addTerm(1,BJ[j]);
+                    for (int k=0; k<this.Uj[0]; k++)
+                    {
+                        sumzjk_expr.addTerm(-k,ZJK[j][k]);
+                    }
+                    rng = cplex.addEq(sumzjk_expr,0);
+                    rng.setName("cap" + j);
+                }
+            }
+
             cplex.addMinimize(this.objective);
 
 
@@ -801,15 +845,14 @@ public class SerialLine {
             {
                 IloLinearNumExpr sumBJcut_expr = cplex.linearNumExpr();
                 IloRange rng;
-                int lastcapsum = 0;
-                for(int j=0;j< this.NbStage-1;j++)
+                for (int j=0; j<this.NbStage-1; j++)
                 {
-                    sumBJcut_expr.addTerm(1,BJ[j]);
-                    lastcapsum = lastcapsum + this.Buffer[j];
+                    for (int k= (int) this.Buffer[j] +1; k<this.Uj[0]; k++)
+                    {
+                        sumBJcut_expr.addTerm(1,ZJK[j][k]);
+                    }
                 }
-                lastcapsum=lastcapsum+1;
-                System.out.println("capacita' totale: " + lastcapsum);
-                rng = cplex.addGe(sumBJcut_expr,lastcapsum);
+                rng = cplex.addGe(sumBJcut_expr,1.0);
                 rng.setName("combcut of iter"+nnint);
             }
 
