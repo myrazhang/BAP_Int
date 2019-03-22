@@ -14,7 +14,7 @@ public class Test_SerialLineSimulation {
         String programPath = System.getProperty("user.dir");
 
         //***   Input files   *********************************************************
-        String in_System = programPath + "\\INPUT\\SerialLine_test.txt";
+        String in_System = programPath + "\\INPUT\\SerialLine_test_4stage.txt";
         InputStream in_SystemFile = null;
         try {
             in_SystemFile = new FileInputStream(in_System);
@@ -65,6 +65,10 @@ public class Test_SerialLineSimulation {
         writer.write(df.format(OptTime));
         writer.println();
 
+        writer.write("cplex time CG: ");
+        writer.write(df.format(mySystem.our_cplextime));
+        writer.println();
+
         writer.print("Optimal Buffer: ");
         for(int j=0;j<mySystem.NbStage-1;j++){
             writer.print(mySystem.Buffer[j]);
@@ -101,6 +105,9 @@ public class Test_SerialLineSimulation {
         df.setRoundingMode(RoundingMode.CEILING);
         writer.write("total time CG: ");
         writer.write(df.format(OptTime));
+        writer.println();
+        writer.write("cplex time CG: ");
+        writer.write(df.format(mySystem.stolletz_cplextime));
         writer.println();
 
         writer.print("Optimal Buffer: ");
