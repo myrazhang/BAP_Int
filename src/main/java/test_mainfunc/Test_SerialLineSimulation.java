@@ -48,15 +48,15 @@ public class Test_SerialLineSimulation {
 
         PrintWriter writer = new PrintWriter(outRes, true);
 
-        //optimization part
+        //optimization part with our cut
         long StartOpt = System.currentTimeMillis();
         mySystem.solveBender(N,W,tij,false);
         long elapsedTimeMillisC = System.currentTimeMillis()- StartOpt;
         float elapsedTimeSecC = elapsedTimeMillisC/1000F;
         double OptTime = elapsedTimeSecC;
 
-        writer.print("Cycle time with Benders Decomposition: ");
-        double tempCT=1/mySystem.TH;
+        writer.print("TH: ");
+        double tempCT=mySystem.TH;
         writer.println(tempCT);
 
         DecimalFormat df = new DecimalFormat("#.#####");
@@ -83,6 +83,45 @@ public class Test_SerialLineSimulation {
             }
             writer.println();
         }
+
+        //optimization part with stolletz
+        writer.print("---------");
+        writer.print("Stolletz optimization");
+        StartOpt = System.currentTimeMillis();
+        mySystem.solveBender(N,W,tij,true);
+        elapsedTimeMillisC = System.currentTimeMillis()- StartOpt;
+        elapsedTimeSecC = elapsedTimeMillisC/1000F;
+        OptTime = elapsedTimeSecC;
+
+        writer.print("TH: ");
+        tempCT=mySystem.TH;
+        writer.println(tempCT);
+
+        df = new DecimalFormat("#.#####");
+        df.setRoundingMode(RoundingMode.CEILING);
+        writer.write("total time CG: ");
+        writer.write(df.format(OptTime));
+        writer.println();
+
+        writer.print("Optimal Buffer: ");
+        for(int j=0;j<mySystem.NbStage-1;j++){
+            writer.print(mySystem.Buffer[j]);
+            writer.print(" ");
+        }
+        writer.println();
+
+        writer.print("Total number of iterations: ");
+        writer.println(mySystem.totit);
+
+        writer.println("BAP of each iteration: ");
+        for(int k=0;k<mySystem.numit;k++){
+            for(int j=0;j<mySystem.NbStage-1;j++){
+                writer.print(mySystem.BJsol[j][k]);
+                writer.print(' ');
+            }
+            writer.println();
+        }
+
 
 
         try {
