@@ -1,7 +1,7 @@
 NbStage: 4
 Lj: 1
 Uj: 20
-THstar: 0.47
+THstar: 0.48
 Buffer: 1 1 1
 
 Cycletime:
