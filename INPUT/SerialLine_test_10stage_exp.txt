@@ -1,0 +1,12 @@
+NbStage: 10
+Lj: 1
+Uj: 40
+THstar: 0.40
+Buffer: 1 1 1 1 1   1   1   1   1
+
+Cycletime:
+Distribution:	Exp 	Exp 	Exp     Exp     Exp     Exp 	Exp 	Exp     Exp     Exp
+Mean:		    2	    2	    2	    2       2       2	    2	    2	    2       2
+Para2:		    0	    0	    0       0       0       0	    0	    0       0       0
+Para3:          0       0       0       0       0       0       0       0       0       0
+Para4:          0       0       0       0       0       0       0       0       0       0

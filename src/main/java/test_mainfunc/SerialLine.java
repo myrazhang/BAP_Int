@@ -14,6 +14,7 @@ import ilog.concert.*;
 import ilog.cplex.*;
 
 import org.apache.commons.math3.distribution.BetaDistribution;
+import org.apache.commons.math3.distribution.ExponentialDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 // import org.apache.commons.math3.distribution.UniformRealDistribution;
 // import org.apache.commons.math3.distribution.WeibullDistribution;
@@ -177,7 +178,11 @@ public class SerialLine {
                     p = pt.sample();
                 }
             }
-            // else if(CT[j].distribution.equals("Exp")){...}
+            else if(CT[j].distribution.equals("Exp")){
+                ExponentialDistribution pt= new ExponentialDistribution(generator,CT[j].Para1);
+                for (int i = 0; i < N; i++)
+                    pij[i][j] =pt.sample();
+            }
         }
     }
 
@@ -835,7 +840,6 @@ public class SerialLine {
         int nnint = numint -1;
 
         try {
-
 
             if(!Stolletz)
             {
