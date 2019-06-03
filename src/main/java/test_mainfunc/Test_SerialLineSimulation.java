@@ -3,6 +3,7 @@ package test_mainfunc;
 import java.io.*;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.Scanner;
 
 
 import static java.lang.Math.max;
@@ -24,7 +25,6 @@ public class Test_SerialLineSimulation {
         }
 
 
-
         //***   Output summary file   *********************************************************
         String out_resFileSummary = programPath + "\\OUTPUT\\SimOutput_summary.txt";
 
@@ -36,37 +36,53 @@ public class Test_SerialLineSimulation {
             System.exit(-1);
         }
 
-        // Simulation parameters
-        //int N=100000;
-        //int W=1;
 
         // System read from INPUT file
-        SerialLine mySystem= new SerialLine(in_SystemFile);
+        SystemCombinationsForDOE myDOE=new SystemCombinationsForDOE(in_SystemFile);
         PrintWriter writersum = new PrintWriter(outRessummary, true);
 
         writersum.println("J TH BN1 BN2 alpha CTnoBN var A5_numiter A5_comptime A5_cplext ST_numiter ST_comptime ST_cplext Optsol");
 
         int BNpositions=0;
         //here the DoE starts
-        for(int Jfac=0; Jfac < mySystem.Jfactor.length; Jfac++){
-            if (mySystem.Jfactor[Jfac]==4){
+        for(int Jfac=0; Jfac < myDOE.Jfactor.length; Jfac++){
+            if (myDOE.Jfactor[Jfac]==4){
                 BNpositions =4;
             }
-            else if (mySystem.Jfactor[Jfac]==7){
+            else if (myDOE.Jfactor[Jfac]==7){
                 BNpositions = 12;
             }
-            for(int THfac=0; THfac < mySystem.THfactor.length;THfac++){
+            for(int THfac=0; THfac < myDOE.THfactor.length;THfac++){
                 for(int BNfac=0; BNfac < BNpositions; BNfac++){
-                    for(int alfac=0; alfac< mySystem.alphafactor.length; alfac++){
-                        for(int noBNctfac=0; noBNctfac< mySystem.noBNfactor.length;noBNctfac++){
-                            for(int varfac=0; varfac< mySystem.varfactor.length;varfac++){
+                    for(int alfac=0; alfac< myDOE.alphafactor.length; alfac++){
+                        for(int noBNctfac=0; noBNctfac< myDOE.noBNfactor.length;noBNctfac++){
+                            for(int varfac=0; varfac< myDOE.varfactor.length;varfac++){
 
-                                //configuration of a single instance
-                                mySystem.SystemConfiguration(Jfac, THfac, BNfac, alfac, noBNctfac, varfac);
+                                SerialLine mySystem=new SerialLine();
+                                mySystem=myDOE.getOneSystemConfiguration(Jfac, BNfac, alfac, noBNctfac, varfac);
 
-                                //open output file
-                                mySystem.tempinstance = "J"+mySystem.NbStage+"_TH_"+mySystem.THstar +"_BN_"+mySystem.BN1[BNfac]+mySystem.BN2[BNfac]+"_alpha_"+mySystem.alphafactor[alfac]+"_BNf_"+mySystem.noBNfactor[noBNctfac]+"_var_"+mySystem.varfactor[varfac];
-                                String out_resFile = programPath +"\\OUTPUT\\Out_"+ mySystem.tempinstance + ".txt";
+                                int[] lB=new int[mySystem.nbStage-1];
+                                int[] uB=new int[mySystem.nbStage-1];
+                                for(int j=0;j<mySystem.nbStage-1;j++){
+                                    lB[j]=myDOE.Lj;
+                                    uB[j]=myDOE.Uj;
+                                }
+
+                                // sampling
+                                double[][] tij=new double[myDOE.Njobs][mySystem.nbStage];
+                                int seed =(int) System.currentTimeMillis();
+                                mySystem.procTimeGeneration(myDOE.Njobs,tij,seed);
+
+                                DecimalFormat df;
+                                df = new DecimalFormat("#.#####");
+                                df.setRoundingMode(RoundingMode.CEILING);
+
+                                //Optimization part with Alter 5
+                                BendersIntModelAlter5 myAlter5=new BendersIntModelAlter5(mySystem, myDOE.THfactor[THfac], lB, uB, myDOE.Njobs, myDOE.W);
+
+                                //output file
+                                myDOE.tempinstance = "J"+mySystem.nbStage+"_TH_"+myDOE.THfactor[THfac] +"_BN_"+myDOE.BN1[BNfac]+myDOE.BN2[BNfac]+"_alpha_"+myDOE.alphafactor[alfac]+"_BNf_"+myDOE.noBNfactor[noBNctfac]+"_var_"+myDOE.varfactor[varfac];
+                                String out_resFile = programPath +"\\OUTPUT\\Out_"+ myDOE.tempinstance + ".txt";
                                 OutputStream outRes= null;
                                 try {
                                     outRes = new FileOutputStream(out_resFile);
@@ -74,49 +90,39 @@ public class Test_SerialLineSimulation {
                                     e.printStackTrace();
                                     System.exit(-1);
                                 }
-                                mySystem.writer = new PrintWriter(outRes, true);
+                                myAlter5.writer = new PrintWriter(outRes, true);
 
-                                //start optimization
-                                double[][] tij=new double[mySystem.Njobs][mySystem.NbStage];
-                                mySystem.resc = new double [mySystem.Maxit];
-                                mySystem.ProcTimeGeneration(mySystem.Njobs,tij);
 
-                                //optimization part with our cut
-                                long StartOpt;
-                                long elapsedTimeMillisC;
-                                float elapsedTimeSecC;
-                                double OptTime;
-                                DecimalFormat df;
+                                StopWatch totalAlter5Time=new StopWatch();
+                                totalAlter5Time.start();
+                                myAlter5.solveBAPWithIntModel(tij);
+                                totalAlter5Time.stop();
 
-                                //Alter 5
-                                StartOpt = System.currentTimeMillis();
-                                mySystem.solveBender(mySystem.Njobs,mySystem.W,tij,false,5);
-                                elapsedTimeMillisC = System.currentTimeMillis()- StartOpt;
-                                elapsedTimeSecC = elapsedTimeMillisC/1000F;
-                                OptTime = elapsedTimeSecC;
-                                df = new DecimalFormat("#.#####");
-                                df.setRoundingMode(RoundingMode.CEILING);
 
-                                //write results on summary file
-                                writersum.write(" " + mySystem.NbStage + " "+mySystem.THstar +" "+mySystem.BN1[BNfac]+" " + mySystem.BN2[BNfac] +" "+mySystem.alphafactor[alfac]+" "+mySystem.noBNfactor[noBNctfac]+" "+mySystem.varfactor[varfac] + " ");
-                                writersum.write(mySystem.totit + " " + df.format(OptTime)+ " " +df.format(mySystem.our_cplextime[2])+ " ");
+                                writersum.write(" " + mySystem.nbStage + " "+myAlter5.THstar +" "+myDOE.BN1[BNfac]+" " + myDOE.BN2[BNfac] +" "+myDOE.alphafactor[alfac]+" "+myDOE.noBNfactor[noBNctfac]+" "+myDOE.varfactor[varfac] + " ");
+                                writersum.write(myAlter5.numit + " " + df.format(totalAlter5Time.elapseTimeSeconds)+ " " +df.format(myAlter5.cplexTimeMeasure.elapseTimeSeconds)+ " ");
+
+
 
                                 //optimization part with stolletz
-                                StartOpt = System.currentTimeMillis();
-                                mySystem.solveBender(mySystem.Njobs,mySystem.W,tij,true,0);
-                                elapsedTimeMillisC = System.currentTimeMillis()- StartOpt;
-                                elapsedTimeSecC = elapsedTimeMillisC/1000F;
-                                OptTime = elapsedTimeSecC;
-                                df = new DecimalFormat("#.#####");
-                                df.setRoundingMode(RoundingMode.CEILING);
+                                BendersStolletz myStolletz=new BendersStolletz(mySystem, myDOE.THfactor[THfac], lB, uB, myDOE.Njobs, myDOE.W);
+
+
+                                StopWatch totalStolletzTime=new StopWatch();
+                                totalStolletzTime.start();
+                                myStolletz.solveBAPWithStolletz(tij);
+                                totalAlter5Time.stop();
+
                                 int totcap=0;
-                                for(int j=0;j<mySystem.NbStage-1;j++){
-                                    totcap = totcap+ mySystem.Buffer[j];
+                                for(int j=0;j<mySystem.nbStage-1;j++){
+                                    totcap = totcap+ mySystem.buffer[j];
                                 }
                                 //write on summary file
-                                writersum.write(mySystem.totit + " " + df.format(OptTime)+ " " +df.format(mySystem.stolletz_cplextime)+ " " + totcap);
+                                writersum.write(myStolletz.numit + " " + df.format(totalStolletzTime.elapseTimeSeconds)+ " " +df.format(myStolletz.cplexTimeMeasure.elapseTimeSeconds)+ " " + totcap);
                                 writersum.println();
 
+
+                                //todo: all the clock and computation time
                                 //close single instance file
                                 try {
                                     outRes.close();
@@ -137,109 +143,6 @@ public class Test_SerialLineSimulation {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-          /*writer.println("BAP of each iteration: ");
-        for(int k=0;k<mySystem.numit;k++){
-            for(int j=0;j<mySystem.NbStage-1;j++){
-                writer.print(mySystem.BJsol[j][k]);
-                writer.print(' ');
-            }
-            writer.println();
-        }*/
-
-
-        /*writer.println("BAP of each iteration: ");
-        for(int k=0;k<mySystem.numit;k++){
-            for(int j=0;j<mySystem.NbStage-1;j++){
-                writer.print(mySystem.BJsol[j][k]);
-                writer.print(' ');
-            }
-            writer.println();
-        }*/
-        //Alter 4
-        /*writer.print("---------");
-        writer.println("Alter 4");
-        StartOpt = System.currentTimeMillis();
-        mySystem.solveBender(N,W,tij,false,4);
-        elapsedTimeMillisC = System.currentTimeMillis()- StartOpt;
-        elapsedTimeSecC = elapsedTimeMillisC/1000F;
-        OptTime = elapsedTimeSecC;
-
-        writer.print("TH: ");
-        tempCT=mySystem.TH;
-        writer.println(tempCT);
-
-        df = new DecimalFormat("#.#####");
-        df.setRoundingMode(RoundingMode.CEILING);
-        writer.write("total time CG: ");
-        writer.write(df.format(OptTime));
-        writer.println();
-
-        writer.write("cplex time CG: ");
-        writer.write(df.format(mySystem.our_cplextime[1]));
-        writer.println();
-
-        writer.print("Optimal Buffer: ");
-        for(int j=0;j<mySystem.NbStage-1;j++){
-            writer.print(mySystem.Buffer[j]);
-            writer.print(" ");
-        }
-        writer.println();
-
-        writer.print("Total number of iterations: ");
-        writer.println(mySystem.totit);*/
-
-        /*writer.println("BAP of each iteration: ");
-        for(int k=0;k<mySystem.numit;k++){
-            for(int j=0;j<mySystem.NbStage-1;j++){
-                writer.print(mySystem.BJsol[j][k]);
-                writer.print(' ');
-            }
-            writer.println();
-        }*/
-
-        //Alter 3
-       /* writer.print("---------");
-        writer.println("Alter 3");
-        StartOpt = System.currentTimeMillis();
-        mySystem.solveBender(N,W,tij,false,3);
-        elapsedTimeMillisC = System.currentTimeMillis()- StartOpt;
-        elapsedTimeSecC = elapsedTimeMillisC/1000F;
-        OptTime = elapsedTimeSecC;
-
-        writer.print("TH: ");
-        tempCT=mySystem.TH;
-        writer.println(tempCT);
-
-        df = new DecimalFormat("#.#####");
-        df.setRoundingMode(RoundingMode.CEILING);
-        writer.write("total time CG: ");
-        writer.write(df.format(OptTime));
-        writer.println();
-
-        writer.write("cplex time CG: ");
-        writer.write(df.format(mySystem.our_cplextime[0]));
-        writer.println();
-
-        writer.print("Optimal Buffer: ");
-        for(int j=0;j<mySystem.NbStage-1;j++){
-            writer.print(mySystem.Buffer[j]);
-            writer.print(" ");
-        }
-        writer.println();
-
-        writer.print("Total number of iterations: ");
-        writer.println(mySystem.totit);*/
-
-        /*writer.println("BAP of each iteration: ");
-        for(int k=0;k<mySystem.numit;k++){
-            for(int j=0;j<mySystem.NbStage-1;j++){
-                writer.print(mySystem.BJsol[j][k]);
-                writer.print(' ');
-            }
-            writer.println();
-        }*/
-
 
     }
 

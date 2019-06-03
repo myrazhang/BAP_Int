@@ -1,809 +1,339 @@
 package test_mainfunc;
 
 import java.io.*;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.util.Date;
-import java.util.Random;
 import java.util.Scanner;
-
-
-import ilog.concert.*;
-import ilog.cplex.*;
-
-import org.apache.commons.math3.distribution.BetaDistribution;
-import org.apache.commons.math3.distribution.ExponentialDistribution;
-import org.apache.commons.math3.distribution.NormalDistribution;
-// import org.apache.commons.math3.distribution.UniformRealDistribution;
-// import org.apache.commons.math3.distribution.WeibullDistribution;
-import org.apache.commons.math3.random.RandomGenerator;
-import org.apache.commons.math3.random.RandomGeneratorFactory;
-
 import static java.lang.Math.*;
 
 public class SerialLine {
-    public int Njobs;
-    public int W;
-    public int NbStage;
-    public int[] Buffer;
+    public int nbStage;
+    public int[] buffer;
     public StochNum[] CT;
-    public int Uj;
-    public int Lj;
-    //public int DeltaUj;
-    //public int DeltaLj;
-    public double THstar;
-    public int[] Jfactor;
-    public double[] THfactor;
-    public String distr;
-    public double BNct;
-    public double[] alphafactor;
-    public double[] betafactor;
-    public double[] noBNfactor;
-    public double[] varfactor;
-    public int[] BN1;
-    public int[] BN2;
+    public SimulationBAS mySimulation;
 
     //Sim_Output
     public double OverallCT;
     public double TH;
-    public int Maxit = 20000;
-    public int numit;
-
-    public double[][] bar_Sij;
-    public double[] bar_Dij;
-    public int[][] ubarij;
-    public int[][] wbarij;
-    public double stolletz_cplextime;
-    public double[] our_cplextime=new double[3];
-    public boolean[][] Alter5_Delta;
 
 
-    //cplex public variables
-    public IloCplex cplex;
+    // constructing a SINGLE serial line from a input file is not needed currently.
+    /*public SerialLine(InputStream system) {}*/
 
-    public IloNumVar[] BJ;
-    public IloNumVar[][] DeltaBJrp;
-    public IloNumVar[][] DeltaBJrm;
-    public IloNumVar[][] DeltaJKp;
-    public IloNumVar[][] DeltaJKm;
-
-    public IloLinearNumExpr objective;
-    public IloNumVar[][] YJK;
-    public IloNumVar[][] YJR;
-    public IloNumVar[][] ZJK;
-
-    // Solutions from all iterations
-    public int totit;
-    public int BJsol[][];
-    public double[][] DeltapPar;
-    public double[][] DeltamPar;
-    public double[] resc;
-    public PrintWriter writer;
-    public String tempinstance;
-
-
-    // Create a new test_mainfunc.SerialLine from txt file
-    public SerialLine(InputStream system) {
-
-        Scanner scanner=new Scanner (system);
-        scanner.useDelimiter("\\s+");
-
-        // scan number of jobs
-        scanner.next();
-        this.Njobs=scanner.nextInt();
-
-        //scan warmup period
-        scanner.next();
-        this.W = scanner.nextInt();
-
-        //scan Lowerbound Lj
-        scanner.next();
-        this.Lj = scanner.nextInt();
-        //this.DeltaLj=templj;
-       /* for(int j=0;j< this.NbStage -1;j++)
-        {
-            this.Lj[j]= templj;
-        }*/
-
-        //scan upperbound Uj
-        scanner.next();
-        this.Uj =  scanner.nextInt();
-        //this.DeltaUj=tempuj;
-       /* for(int j=0;j< this.NbStage -1;j++)
-        {
-            this.Uj[j]= tempuj;
-        }*/
-
-       //scan number of values for each factor
-        //scan factor Number of stages
-        scanner.next();
-        int tempLength = scanner.nextInt();
-        this.Jfactor = new int[tempLength];
-        for (int j =0;j<this.Jfactor.length;j++){
-            this.Jfactor[j] = scanner.nextInt();
-        }
-
-        //scan factor TH
-        scanner.next();
-        tempLength = scanner.nextInt();
-        this.THfactor = new double[tempLength];
-        //this.THstar=scanner.nextDouble();
-        for (int i=0; i<this.THfactor.length;i++){
-            this.THfactor[i]=scanner.nextDouble();
-        }
-
-
-        //scan factor Distributions
-        scanner.next();
-        this.distr = scanner.next();
-        //scan parameters size of factors and values
-        scanner.next();
-        //BN cycle time
-        this.BNct = scanner.nextDouble();
-
-        //no BN cycle time
-        scanner.next();
-        tempLength = scanner.nextInt();
-        this.noBNfactor = new double[tempLength];
-        for (int i=0; i<this.noBNfactor.length;i++){
-            this.noBNfactor[i]=scanner.nextDouble();
-        }
-        //alpha parameter
-        scanner.next();
-        tempLength = scanner.nextInt();
-        this.alphafactor = new double[tempLength];
-        for (int i=0; i<this.alphafactor.length;i++){
-            this.alphafactor[i]=scanner.nextDouble();
-        }
-        //beta parameter
-        scanner.next();
-        tempLength = scanner.nextInt();
-        this.betafactor = new double[tempLength];
-        for (int i=0; i<this.betafactor.length;i++){
-            this.betafactor[i]=scanner.nextDouble();
-        }
-
-        scanner.next();
-        tempLength = scanner.nextInt();
-        this.varfactor = new double[tempLength];
-        for (int i=0; i<this.varfactor.length;i++){
-            this.varfactor[i]=scanner.nextDouble();
-        }
-
-        //scan bottlenecks information
-        scanner.next();
-        tempLength = scanner.nextInt();
-        this.BN1 = new int[tempLength];
-        this.BN2 = new int[tempLength];
-        scanner.next();
-        for (int i=0; i<this.BN1.length;i++){
-            this.BN1[i]=scanner.nextInt();
-        }
-        scanner.next();
-        for (int i=0; i<this.BN2.length;i++){
-            this.BN2[i]=scanner.nextInt();
-        }
-
-
-
-        //scan simulation buffer configuration
-        /*this.Buffer = new int[this.NbStage - 1];
-        scanner.next();
-        for (int j = 0; j < this.NbStage - 1; j++)
-        {
-            this.Buffer[j]=scanner.nextInt();
-        }*/
-
-        //scan distributions of machine processing time
-        /*scanner.next();
-        this.CT = new StochNum[this.NbStage];
-        scanner.next();
-        for (int j = 0; j < this.NbStage; j++)
-        {
-            this.CT[j]=new StochNum();
-            this.CT[j].distribution=scanner.next(); // ???????????? this.CT[j].distribution 是字符串
-        }
-        scanner.next();
-        for (int j = 0; j < this.NbStage; j++)
-        {
-            this.CT[j].Para1=scanner.nextDouble();
-        }
-        scanner.next();
-        for (int j = 0; j < this.NbStage; j++)
-        {
-            this.CT[j].Para2=scanner.nextDouble();
-        }
-        scanner.next();
-        for (int j = 0; j < this.NbStage; j++)
-        {
-            this.CT[j].Para3=scanner.nextDouble();
-        }
-        scanner.next();
-        for (int j = 0; j < this.NbStage; j++)
-        {
-            this.CT[j].Para4=scanner.nextDouble();
-        }*/
-    }
-
-    public void SystemConfiguration(int Jindex, int THindex, int BNindex,int alphaindex, int noBNctindex, int varindex){
-
-        //save number of stages
-        this.NbStage = this.Jfactor[Jindex];
-        this.Buffer = new int[this.NbStage - 1];
-
-        //save TH target
-        this.THstar = this.THfactor[THindex];
-
-        //save distribution information
-        this.CT = new StochNum[this.NbStage];
-        for (int j = 0; j < this.NbStage; j++)
-        {
-            this.CT[j]=new StochNum();
-            this.CT[j].distribution= this.distr;
-            if (CT[j].distribution.equals("Beta") ){
-                this.CalculateBetaPar(j,BNindex,alphaindex,noBNctindex,varindex);
-            }//end if beta
-            else if(CT[j].distribution.equals("Exp")){
-                this.CT[j].Para1 = this.alphafactor[alphaindex];
-            }//end if exponential
-        }
-    }
-
-    public void CalculateBetaPar(int j,int BNindex,int alphaindex, int noBNctindex,int varindex){
-            double alpha = this.alphafactor[alphaindex] ;
-            double beta = this.betafactor[alphaindex] ;
-            double boolvariance = alpha*beta/((alpha+beta)*(alpha+beta))*(alpha+beta+1);
-            double boolmean= alpha/(alpha+beta);
-            double lowera=0;
-            if(j==this.BN1[BNindex] || j == this.BN2[BNindex]){
-                lowera = this.BNct - boolmean* sqrt(this.varfactor[varindex]/boolvariance);
-
-            }//end if BN stage
-            else{
-                lowera = this.noBNfactor[noBNctindex] - boolmean* sqrt(this.varfactor[varindex]/boolvariance);
-            }//end else no BN stage
-             double upperb = lowera + sqrt(this.varfactor[varindex]/boolvariance);
-
-        this.CT[j].Para1= alpha;
-        this.CT[j].Para2= beta;
-        this.CT[j].Para3= lowera;
-        this.CT[j].Para4= upperb;
-    }//end CalculateBetaPar function
+    public SerialLine(){}
 
     // Processing time generation
-    public void ProcTimeGeneration(int N, double[][] pij){
-        RandomGenerator generator = RandomGeneratorFactory.createRandomGenerator(new Random());
+    public void procTimeGeneration(int N, double[][] pij,int seed){
+        double[][] pji=new double[this.nbStage][N];
+        for (int j = 0; j < this.nbStage; j++)
+            this.CT[j].iidGeneration(N,pji[j],seed);
 
-        //Seed
-        generator.setSeed(new Date().getTime());
-
-        for (int j = 0; j < NbStage; j++) {
-            //Processing time
-            //Normal distribution
-            //CT[j].Para1 -  mean
-            //CT[j].Para2 -  coefficient of variance
-            if (CT[j].distribution.equals("Norm")) {
-                NormalDistribution pt = new NormalDistribution(generator, CT[j].Para1, CT[j].Para1 * CT[j].Para2);
-                double p = pt.sample();
-                for (int i = 0; i < N; i++) {
-                    while (p < 0 || p > 2 * CT[j].Para1) {
-                        p = pt.sample();
-                    }
-                    pij[i][j] = p;
-                    p = pt.sample();
-                }
-            }
-            else if(CT[j].distribution.equals("Beta")){
-                BetaDistribution pt=new BetaDistribution(generator, CT[j].Para1, CT[j].Para2);
-
-                double p = pt.sample();
-                for (int i = 0; i < N; i++) {
-                    pij[i][j] =CT[j].Para3+ p * (CT[j].Para4 - CT[j].Para3);
-                    p = pt.sample();
-                }
-            }
-            else if(CT[j].distribution.equals("Exp")){
-                ExponentialDistribution pt= new ExponentialDistribution(generator,CT[j].Para1);
-                for (int i = 0; i < N; i++)
-                    pij[i][j] =pt.sample();
-            }
+        for(int i=0;i<N;i++){
+            for(int j=0;j<this.nbStage;j++)
+                pij[i][j]=pji[j][i];
         }
     }
 
+    public class SimulationBAS{
 
-    //*****************************************************************************************************************
-    // Simulation
-    // Dual variables: uij, vij, wij, sij
-    /////////////////////////// OUTPUT //////////////////////////////////////////////////////
-    /////uij[i][j] : D[i][j] trigerred by S[i][j]                ////////////////////////////
-    /////wij[i][j] : D[i][j] trigerred by S[i-b_j][j+1] BLOCKAGE ////////////////////////////
-    /////vij[i][j] : S[i][j] trigerred by D[i-1][j]              ////////////////////////////
-    /////sij[i][j] : S[i][j] trigerred by D[i][j-1]   STARVATION ////////////////////////////
+        //*****************************************************************************************************************
+        // Simulation
+        // Dual variables: uij, vij, wij, sij
+        /////////////////////////// OUTPUT //////////////////////////////////////////////////////
+        /////uij[i][j] : D[i][j] trigerred by S[i][j]                ////////////////////////////
+        /////wij[i][j] : D[i][j] trigerred by S[i-b_j][j+1] BLOCKAGE ////////////////////////////
+        /////vij[i][j] : S[i][j] trigerred by D[i-1][j]              ////////////////////////////
+        /////sij[i][j] : S[i][j] trigerred by D[i][j-1]   STARVATION ////////////////////////////
 
-    /////////////////////////// INPUT ///////////////////////////////////////////////////////
-    ///// N : Simulation length /////////////////////////////////////////////////////////////
-    ///// W : Warmup length (in terms of part number) ///////////////////////////////////////
-    ///// tij : processing time of a part at a station //////////////////////////////////////
-    ///// bar_Dij, bar_Sij : event time in warmup period ////////////////////////////////////
-    ///// SteadyState: simulation from W or from 0:
-    /////           if SteadyState=false, simulate from 0; bar_Dij and bar_Sij will be output
-    /////           if SteadyState=true, simulate from W; bar_Dij and bar_Sij will be used as input
-    /////////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////// INPUT ///////////////////////////////////////////////////////
+        ///// N : Simulation length /////////////////////////////////////////////////////////////
+        ///// W : Warmup length (in terms of part number) ///////////////////////////////////////
+        ///// tij : processing time of a part at a station //////////////////////////////////////
+        ///// bar_Dij, bar_Sij : event time in warmup period ////////////////////////////////////
+        ///// SteadyState: simulation from W or from 0:
+        /////           if SteadyState=false, simulate from 0; bar_Dij and bar_Sij will be output
+        /////           if SteadyState=true, simulate from W; bar_Dij and bar_Sij will be used as input
+        /////////////////////////////////////////////////////////////////////////////////////////
 
-    public void SIM_Serial_BAS(
-            int N,
-            int W,
-            double[][] tij,
-            int[][] uij,
-            int[][] vij,
-            int[][] wij,
-            int[][] sij,
-            double[][] bar_Sij,
-            double[] bar_Dij,
-            boolean SteadyState) {
-        //*****************************************************************************
-        //*****************************************************************************
-        //** The notations of u,v,w,s is consistent with the journal paper ************
-        //** on throughput improvement (2018).                             ************
-        //*****************************************************************************
-        //*****************************************************************************
 
-        //***************************************
-        //********** EVENT TIME *****************
-        //***************************************
-        double[][] Sij = new double[N][NbStage];
-        double[][] Dij = new double[N][NbStage];
-        for (int i = 0; i < N; i++)
-        {
-            for (int j = 0; j < NbStage; j++)
-            {
-                Sij[i][j] = 0;
-                Dij[i][j] = 0;
+        public double[][] tij;
+        private double[][] Sij;
+        private double[][] Dij;
+        private int[][] bsij;
+        private int[][] buij;
+        private int[][] bvij;
+        private int[][] bwij;
+        public int[][] uij;
+        public int[][] vij;
+        public int[][] wij;
+        public int[][] sij;
+        public int N;
+        public int W;
+        private double[][] bar_Sij;
+        private double[][] bar_Dij;
+
+        public SimulationBAS(int N,int W,double[][] tij){
+            this.Sij=new double[N][nbStage];
+            this.Dij=new double[N][nbStage];
+            this.bsij = new int[N][nbStage];
+            this.buij = new int[N][nbStage];
+            this.bvij = new int[N][nbStage];
+            this.bwij = new int[N][nbStage];
+            this.sij = new int[N][nbStage];
+            this.uij = new int[N][nbStage];
+            this.vij = new int[N][nbStage];
+            this.wij = new int[N][nbStage];
+            this.bar_Dij=new double[W][nbStage];
+            this.bar_Sij=new double[W][nbStage];
+            this.tij=tij;
+        }
+
+        public void simBAS(boolean steadyState){
+            for (int i = 0; i < this.N; i++){
+                for (int j = 0; j < nbStage; j++){
+                    this.Sij[i][j] = 0;
+                    this.Dij[i][j] = 0;
+                }
+            }
+            for (int i = 0; i <this.N; i++){
+                for (int j = 0; j < nbStage; j++){
+                    bsij[i][j] = 0;
+                    buij[i][j] = 0;
+                    bvij[i][j] = 0;
+                    bwij[i][j] = 0;
+                }
+            }
+
+            if(!steadyState){
+                for (int i = 0; i < this.N; i++) {
+                    for (int j = 0; j < nbStage; j++){
+                        this.start_BAS(i,j);
+                        this.departure_BAS(i,j);
+                    }
+                }
+                for (int j = 0; j < nbStage; j++) {
+                    for (int i = 0; i < this.W; i++) {
+                        this.bar_Dij[i][j]=this.Dij[i][j];
+                        this.bar_Sij[i][j]=this.Sij[i][j];
+                    }
+                }
+                OverallCT = (this.Dij[this.N - 1][nbStage - 1] - this.Dij[this.W - 1][nbStage - 1]) / (double)(this.N - this.W);
+                TH=(double) 1/OverallCT;
+            }
+            else{
+                for (int j = 0; j < nbStage; j++) {
+                    for (int i = 0; i < this.W; i++) {
+                        this.Dij[i][j] = this.bar_Dij[i][j];
+                        this.Sij[i][j] = this.bar_Sij[i][j];
+                    }
+                }
+
+                for (int i = this.W; i < this.N; i++){
+                    for (int j = 0; j < nbStage; j++){
+                        this.start_BAS(i,j);
+                        this.departure_BAS(i,j);
+                    }
+                }
+                OverallCT = (this.Dij[N-1][nbStage-1]- Dij[W-1][nbStage-1])/ (double)(this.N-this.W);
+                TH=(double) 1/OverallCT;
+            }
+        }
+
+        public void simDualBAS(boolean steadyState) {
+
+
+
+            //*****************************************************************************
+            //*****************************************************************************
+            //** The notations of u,v,w,s is consistent with the journal paper ************
+            //** on throughput improvement (2019).                             ************
+            //*****************************************************************************
+            //*****************************************************************************
+
+            for (int i = 0; i <this.N; i++){
+                for (int j = 0; j < nbStage; j++){
+                    this.sij[i][j] = 0;
+                    this.uij[i][j] = 0;
+                    this.vij[i][j] = 0;
+                    this.wij[i][j] = 0;
+                }
+            }
+
+            this.simBAS(steadyState);
+            if (!steadyState) {
+
+                /////////////////////////////////////////////////////////////////////////////////////////////
+                ///// Simulate from i=0 /////////////////////////////////////////////////////////////////////
+                /////////////////////////////////////////////////////////////////////////////////////////////
+                /////buij[i][j] = 1: D[i][j] trigerred by S[i][j]               /////////////////////////////
+                /////bwij[i][j] = 1: D[i][j] trigerred by S[i-b_j][j+1] BLOCKAGE ////////////////////////////
+                /////bvij[i][j] = 1: S[i][j] trigerred by D[i-1][j]             /////////////////////////////
+                /////bsij[i][j] = 1: S[i][j] trigerred by D[i][j-1]   STARVATION ////////////////////////////
+                /////////////////////////////////////////////////////////////////////////////////////////////
+                for (int i = this.N - 1; i >= 0; i--) {
+                    for (int j = nbStage - 1; j >=0 ; j--) {
+                        this.departure_dual(i,j);
+                        this.start_dual(i,j);
+                    }
+                }
+            }
+            else {
+                for (int i = this.N - 1; i >= this.W; i--){
+                    for (int j = nbStage - 1; j >= 0; j--){
+                        this.departure_dual(i,j);
+                        this.start_dual(i,j);
+                    }
+                }
+            }
+        }
+
+        private void start_BAS(int i0,int j0){
+
+            if(i0==0&& j0==0){
+                this.Sij[i0][j0]=0;
+                this.bsij[i0][j0] = 1;
+            }
+            else if(i0==0){
+                this.Sij[i0][j0]=this.Dij[i0][j0-1];
+                this.bsij[i0][j0] = 1;
+            }
+            else if(j0==0){
+                this.Sij[i0][j0]=this.Dij[i0-1][j0];
+                this.bvij[i0][j0] = 1;
+            }
+            else{
+                if (this.Dij[i0 - 1][j0] > this.Dij[i0][j0 - 1]){
+                    this.Sij[i0][j0] = this.Dij[i0 - 1][j0];
+                    this.bvij[i0][j0] = 1;
+                }
+                else{
+                    this.Sij[i0][j0] = this.Dij[i0][j0 - 1];
+                    this.bsij[i0][j0] = 1;
+                }
+            }
+
+        }
+
+        private void departure_BAS(int i0,int j0){
+
+            if (j0 < nbStage - 1 && i0 < buffer[j0]) {
+                this.Dij[i0][j0] = this.Sij[i0][j0] + this.tij[i0][j0];
+                this.buij[i0][j0] = 1;
+            }
+            else if (j0 == nbStage - 1) {
+                this.Dij[i0][j0] = this.Sij[i0][j0] + this.tij[i0][j0];
+                this.buij[i0][j0] = 1;
+            }
+            else {
+                if (this.Sij[i0][j0] + this.tij[i0][j0] > this.Sij[i0 - buffer[j0]][j0 + 1]) {
+                    this.Dij[i0][j0] = this.Sij[i0][j0] + this.tij[i0][j0];
+                    this.buij[i0][j0] = 1;
+                }
+                else{
+                    this.Dij[i0][j0] = this.Sij[i0 - buffer[j0]][j0 + 1];
+                    bwij[i0][j0] = 1;
+                }
+            }
+        }
+
+        private void departure_dual(int i0, int j0 ){
+
+            if (i0 < this.N - 1 && j0 < nbStage - 1){
+                this.uij[i0][j0] = (this.vij[i0 + 1][j0] + this.sij[i0][j0 + 1])*this.buij[i0][j0];
+                this.wij[i0][j0] = (this.vij[i0 + 1][j0] + this.sij[i0][j0 + 1])*this.bwij[i0][j0];
+            }
+            else if (i0 == this.N - 1 && j0 < nbStage - 1) {
+                this.uij[i0][j0] = (this.sij[i0][j0 + 1])*this.buij[i0][j0];
+                this.wij[i0][j0] = (this.sij[i0][j0 + 1])*this.bwij[i0][j0];
+            }
+            else if (i0 < this.N - 1 && j0 == nbStage - 1) {
+                this.uij[i0][j0] = (this.vij[i0 + 1][j0])*this.buij[i0][j0];
+            }
+            else if (i0 == this.N - 1 && j0 == nbStage - 1){
+                this.uij[i0][j0] = 1;
             }
         }
 
 
-        //***************************************
-        //********** SIM ERG variables   ********
-        //***************************************
-        int[][] bsij = new int[N][this.NbStage];
-        int[][] buij = new int[N][this.NbStage];
-        int[][] bvij = new int[N][this.NbStage];
-        int[][] bwij = new int[N][this.NbStage];
-
-
-        for (int i = 0; i <N; i++)
-        {
-
-            for (int j = 0; j < NbStage; j++)
-            {
-                bsij[i][j] = 0;
-                buij[i][j] = 0;
-                bvij[i][j] = 0;
-                bwij[i][j] = 0;
-
-                // initialize dual variables
-                sij[i][j] = 0;
-                uij[i][j] = 0;
-                vij[i][j] = 0;
-                wij[i][j] = 0;
+        private void start_dual(int i0,int j0){
+            if (j0 > 0 && i0 < this.N - buffer[j0 - 1]) {
+                this.sij[i0][j0] = (this.uij[i0][j0] + this.wij[i0 + buffer[j0 - 1]][j0 - 1])*this.bsij[i0][j0];
+                this.vij[i0][j0] = (this.uij[i0][j0] + this.wij[i0 + buffer[j0 - 1]][j0 - 1])*this.bvij[i0][j0];
             }
-        }
-
-        if (!SteadyState) {
-
-            /////////////////////////////////////////////////////////////////////////////////////////////
-            ///// Simulate from i=0 /////////////////////////////////////////////////////////////////////
-            /////////////////////////////////////////////////////////////////////////////////////////////
-            /////buij[i][j] = 1: D[i][j] trigerred by S[i][j]               /////////////////////////////
-            /////bwij[i][j] = 1: D[i][j] trigerred by S[i-b_j][j+1] BLOCKAGE ////////////////////////////
-            /////bvij[i][j] = 1: S[i][j] trigerred by D[i-1][j]             /////////////////////////////
-            /////bsij[i][j] = 1: S[i][j] trigerred by D[i][j-1]   STARVATION ////////////////////////////
-            /////////////////////////////////////////////////////////////////////////////////////////////
-
-
-            for (int i = 0; i < N; i++)
-            {
-                for (int j = 0; j < NbStage; j++)
-                {
-                    ////////Starting event ////////////////////////////
-                    //first arrival
-                    if (i == 0 && j == 0)
-                    {
-                        Sij[i][j] = 0;
-                        bsij[i][j] = 1;
-                    }
-                    //the first part facing the empty line
-                    else if (i == 0 && j > 0)
-                    {
-                        Sij[i][j] = Dij[i][j - 1];
-                        bsij[i][j] = 1;
-                    }
-                    //first stage: no starvation
-                    else if (i > 0 && j == 0)
-                    {
-                        Sij[i][j] = Dij[i - 1][j];
-                        bvij[i][j] = 1;
-                    }
-                    //others: max{D[i-1][j],D[i][j-1]}
-                    else
-                    {
-                        if (Dij[i - 1][j] > Dij[i][j - 1])
-                        {
-                            Sij[i][j] = Dij[i - 1][j];
-                            bvij[i][j] = 1;
-                        }
-                        else
-                        {
-                            Sij[i][j] = Dij[i][j - 1];
-                            bsij[i][j] = 1;
-                        }
-                    }
-
-
-                    //////// Departure event ////////////////////////////
-                    // First parts: no blockage
-                    if (j < NbStage - 1 && i < Buffer[j])
-                    {
-                        Dij[i][j] = Sij[i][j] + tij[i][j];
-                        buij[i][j] = 1;
-                    }
-                    //last stage: no blockage
-                    else if (j == NbStage - 1)
-                    {
-                        Dij[i][j] = Sij[i][j] + tij[i][j];
-                        buij[i][j] = 1;
-                    }
-                    //others: max{S[i][j]+tij,S[i-b_j][j]}
-                    else
-                    {
-                        if (Sij[i][j] + tij[i][j] > Sij[i - Buffer[j]][j + 1])
-                        {
-                            Dij[i][j] = Sij[i][j] + tij[i][j];
-                            buij[i][j] = 1;
-                        }
-                        else
-                        {
-                            Dij[i][j] = Sij[i - Buffer[j]][j + 1];
-                            bwij[i][j] = 1;
-                        }
-                    }
-                }
+            else  {
+                this.sij[i0][j0] = (this.uij[i0][j0])*this.bsij[i0][j0];
+                this.vij[i0][j0] = (this.uij[i0][j0])*this.bvij[i0][j0];
             }
 
-            /////////////////////////////////////////////////////////////////////////
-            /////   Dual Optimal Solution               /////////////////////////////
-            /////////////////////////////////////////////////////////////////////////
-            for (int i = N - 1; i >= 0; i--)
-            {
-                for (int j = NbStage - 1; j >=0 ; j--)
-                {
-                    /////////Departure event////////////////////
-                    if (i < N - 1 && j < NbStage - 1)
-                    {
-                        uij[i][j] = (vij[i + 1][j] + sij[i][j + 1])*buij[i][j];
-                        wij[i][j] = (vij[i + 1][j] + sij[i][j + 1])*bwij[i][j];
-                    }
-                    else if (i == N - 1 && j < NbStage - 1)
-                    {
-                        uij[i][j] = (sij[i][j + 1])*buij[i][j];
-                        wij[i][j] = (sij[i][j + 1])*bwij[i][j];
-                    }
-                    else if (i < N - 1 && j == NbStage - 1)
-                    {
-                        uij[i][j] = (vij[i + 1][j])*buij[i][j];
-                    }
-                    else if (i == N - 1 && j == NbStage - 1)
-                    {
-                        uij[i][j] = 1;
-                    }
-
-                    /////////Starting event///////////////////////
-                    if (j > 0 && i < N - Buffer[j - 1])
-                    {
-                        sij[i][j] = (uij[i][j] + wij[i + Buffer[j - 1]][j - 1])*bsij[i][j];
-                        vij[i][j] = (uij[i][j] + wij[i + Buffer[j - 1]][j - 1])*bvij[i][j];
-                    }
-                    else
-                    {
-                        sij[i][j] = (uij[i][j])*bsij[i][j];
-                        vij[i][j] = (uij[i][j])*bvij[i][j];
-                    }
-
-                }
-            }
-
-            /*for(int j=0;j<NbStage-1;j++)
-            {
-                System.out.println("buffer at " + j + " is: " + Buffer[j]);
-            }*/
-
-            this.OverallCT = (Dij[N - 1][NbStage - 1] - Dij[W - 1][NbStage - 1]) / (double)(N - W);
-
-            //***************   SAVE bar_Sij, bar_Dij    ***************
-            /*for (int j = 0; j < NbStage; j++) {
-                bar_Dij[j] = Dij[W - 1][j];
-                if (j != NbStage -1) {
-                    for (int i = 0 ; i < this.Uj[j]; i++) {
-                        bar_Sij[i][j+1] = Sij[W- Uj[j]+i][j+1];
-                    }
-                }
-            }*/
-
-
-        }
-        else {
-            //***************   Fix event times in transient period   ***************
-            for (int j = 0; j < NbStage; j++) {
-                Dij[W - 1][j] = bar_Dij[j];
-                if (j != NbStage - 1) {
-                    for (int i = 0; i < this.Uj; i++) {
-                        Sij[W- Uj+i][j+1] = bar_Sij[i][j+1];
-                    }
-                }
-            }
-
-            /////////////////////////////////////////////////////////////////////////////////////////////
-            /////bzij[i][j] = 1: D[i][j] trigerred by S[i][j]                ////////////////////////////
-            /////bwij[i][j] = 1: D[i][j] trigerred by S[i-b_j][j+1] BLOCKAGE ////////////////////////////
-            /////buij[i][j] = 1: S[i][j] trigerred by D[i-1][j]              ////////////////////////////
-            /////bvij[i][j] = 1: S[i][j] trigerred by D[i][j-1]   STARVATION ////////////////////////////
-            /////////////////////////////////////////////////////////////////////////////////////////////
-            for (int i = W; i < N; i++)
-            {
-                for (int j = 0; j < NbStage; j++)
-                {
-                    ////////Starting event ////////////////////////////
-
-                    //first stage: no starvation
-                    if (j == 0)
-                    {
-                        Sij[i][j] = Dij[i - 1][j];
-                        bvij[i][j] = 1;
-                    }
-                    //others: max{D[i-1][j],D[i][j-1]}
-                    else
-                    {
-                        if (Dij[i - 1][j] > Dij[i][j - 1])
-                        {
-                            Sij[i][j] = Dij[i - 1][j];
-                            bvij[i][j] = 1;
-                        }
-                        else
-                        {
-                            Sij[i][j] = Dij[i][j - 1];
-                            bsij[i][j] = 1;
-                        }
-                    }
-
-
-                    ////////Departure event ////////////////////////////
-                    //last stage: no blockage
-                    if (j == NbStage - 1)
-                    {
-                        Dij[i][j] = Sij[i][j] + tij[i][j];
-                        buij[i][j] = 1;
-                    }
-                    //others: max{S[i][j]+tij,S[i-b_j][j]}
-                    else
-                    {
-                        if (Sij[i][j] + tij[i][j] > Sij[i - Buffer[j]][j + 1])
-                        {
-                            Dij[i][j] = Sij[i][j] + tij[i][j];
-                            buij[i][j] = 1;
-                        }
-                        else
-                        {
-                            Dij[i][j] = Sij[i - Buffer[j]][j + 1];
-                            bwij[i][j] = 1;
-                        }
-                    }
-                }
-            }
-
-            for (int i = N - 1; i >= W; i--)
-            {
-                for (int j = NbStage - 1; j >= 0; j--)
-                {
-                    /////////Departure event////////////////////
-                    if (i < N - 1 && j < NbStage - 1)
-                    {
-                        uij[i][j] = (vij[i + 1][j] + sij[i][j + 1])*buij[i][j];
-                        wij[i][j] = (vij[i + 1][j] + sij[i][j + 1])*bwij[i][j];
-                    }
-                    else if (i == N - 1 && j < NbStage - 1)
-                    {
-                        uij[i][j] = (sij[i][j + 1])*buij[i][j];
-                        wij[i][j] = (sij[i][j + 1])*bwij[i][j];
-                    }
-                    else if (i < N - 1 && j == NbStage - 1)
-                    {
-                        uij[i][j] = (vij[i + 1][j])*buij[i][j];
-                    }
-                    else if (i == N - 1 && j == NbStage - 1)
-                    {
-                        uij[i][j] = 1;
-                    }
-
-                    /////////Starting event///////////////////////
-                    if (j > 0 && i < N - Buffer[j - 1])
-                    {
-                        sij[i][j] = (uij[i][j] + wij[i + Buffer[j - 1]][j - 1])*bsij[i][j];
-                        vij[i][j] = (uij[i][j] + wij[i + Buffer[j - 1]][j - 1])*bvij[i][j];
-                    }
-                    else
-                    {
-                        sij[i][j] = (uij[i][j])*bsij[i][j];
-                        vij[i][j] = (uij[i][j])*bvij[i][j];
-                    }
-
-                }
-            }
-
-
-        }
-        this.OverallCT = (Dij[N-1][NbStage-1]- Dij[W-1][NbStage-1])/ (double)(N-W);
-
-        /*for (int j=0; j<this.NbStage;j++)
-        {
-            for(int i=0; i<N;i++)
-            {
-                this.ubarij[i][j][iter]=uij[i][j];
-                this.wbarij[i][j][iter]=wij[i][j];
-            }
-
-        }*/
-    }
-
-    public void solveBender(
-            int jobs,
-            int W,
-            double[][] tij,
-            boolean Stolletz,
-            int AlterID) {
-
-
-        try {
-            for(int i=0;i<3;i++)
-                our_cplextime[i]=0.0;
-            stolletz_cplextime=0.0;
-            double theta = jobs - W;
-            //Initialization properties of the class
-            int[][] vij=new int[jobs][this.NbStage];
-            int[][] sij=new int[jobs][this.NbStage];
-            DeltapPar = new double[this.NbStage-1][this.Maxit];
-            DeltamPar = new double[this.NbStage-1][this.Maxit];
-            ubarij=new int[jobs][this.NbStage];
-            wbarij=new int[jobs][this.NbStage];
-            this.bar_Dij=new double[this.NbStage];
-            /*int B = 0;
-            for (int j = 0; j < this.NbStage - 1; j++) {
-                B = max(B, this.Uj);
-            }
-            this.bar_Sij = new double [B][this.NbStage];*/
-            this.bar_Sij = new double [this.Uj][this.NbStage];
-            BJsol=new int[this.NbStage-1][Maxit];
-
-            if(Stolletz)
-               this.writer.println("Stolletz:");
-            else
-                this.writer.println("Alter 5:");
-            //run master problem
-            this.MasterBenders(Stolletz,AlterID);
-
-            //run simulation (as subproblem)
-            numit = 0;
-            this.SIM_Serial_BAS(jobs,W,tij,this.ubarij,vij,this.wbarij,sij,this.bar_Sij,this.bar_Dij, false);
-            for(int j=0;j<this.NbStage-1;j++){
-                this.BJsol[j][0]=this.Buffer[j];
-            }
-            this.TH = (double)1/this.OverallCT;
-            int[] Ljvec = new int[this.NbStage];
-            int[] Ujvec = new int[this.NbStage];
-            for(int i=0;i<this.NbStage;i++){
-                Ljvec[i]=this.Lj;
-                Ujvec[i]=this.Uj;
-            }
-
-            mM_value mm = new test_mainfunc.mM_value(this.NbStage, jobs, Ujvec, Ljvec);
-            mm.get_mM_value(tij);
-
-            while((this.THstar-this.TH > 0.0001) && (numit < this.Maxit-1))
-            {
-                numit++;
-                long StartT = System.currentTimeMillis();
-                this.AddFeasibilityCut(jobs,numit, tij, theta, Stolletz, mm,AlterID);
-                long elapsedT = System.currentTimeMillis()- StartT;
-                float elapsedTime = elapsedT/1000F;
-                if(Stolletz)
-                    stolletz_cplextime+=elapsedTime;
-                else if(AlterID==3)
-                    our_cplextime[0]+=elapsedTime;
-                else if(AlterID==4)
-                    our_cplextime[1]+=elapsedTime;
-                else if(AlterID==5)
-                    our_cplextime[2]+=elapsedTime;
-
-                this.SIM_Serial_BAS(jobs,W,tij,this.ubarij,vij,this.wbarij,sij,this.bar_Sij,this.bar_Dij,false);
-                this.TH = 1/this.OverallCT;
-
-                int totcap = 0;
-                for(int j=0;j<this.NbStage-1;j++)
-                {
-                    totcap = Buffer[j] + totcap;
-                }
-                this.writer.println("it " + numit + " OF: "+ totcap);
-
-            }
-            this.totit = numit;
-
-            this.writer.println("------------ ");
-            cplex.end();
-        }
-
-
-        catch (Exception exc) {
-            exc.printStackTrace();
         }
 
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     //Initial master problem.
     //No feasibility cut is included.
-    public void MasterBenders(
+    /*public void MasterBenders(
             boolean Stolletz,
             int AlterID
     ) {
 
         try {
-            //Environment definition
-            cplex = new IloCplex();
-
-            //Variable definition
-            BJ = cplex.intVarArray(this.NbStage-1,this.Lj, this.Uj);
-
 
             if(!Stolletz)
             {
                 String label;
-                for (int j=0; j<this.NbStage-1; j++)
+                for (int j=0; j<this.nbStage-1; j++)
                 {
                     label = "b_"+(j+1);
-                    BJ[j] = cplex.intVar(this.Lj,this.Uj,label);
+                    BJ[j] = cplex.intVar(this.Lj,this.Uj,label);// BendersBAP
                 }
 
-                if(AlterID==3 || AlterID==4){
-                    DeltaBJrp = new IloNumVar[this.NbStage-1][];
-                    DeltaBJrm = new IloNumVar[this.NbStage-1][];
-                    for (int j=0; j<this.NbStage-1; j++)
-                    {
-                        DeltaBJrp[j] = cplex.intVarArray(this.Maxit,0,this.Uj-this.Lj);
-                        DeltaBJrm[j] = cplex.intVarArray(this.Maxit,0,this.Uj-this.Lj);
-                        for (int r=0; r<this.Maxit; r++)
-                        {
-                            label = "Deltap_" + (j+1) +'^'+ (r+1);
-                            DeltaBJrp[j][r] = cplex.intVar(0,this.Uj-this.Lj,label);
-                            label = "Deltam_" + (j+1) +'^'+ (r+1);
-                            DeltaBJrm[j][r] = cplex.intVar(0, this.Uj-this.Lj,label);
-                        }
-                    }
-                }
-                else{
-                    DeltaJKp = new IloNumVar[this.NbStage-1][];
-                    DeltaJKm = new IloNumVar[this.NbStage-1][];
-                    this.Alter5_Delta=new boolean[this.NbStage-1][];
-                    for (int j=0; j<this.NbStage-1; j++)
-                    {
-                        DeltaJKp[j] = cplex.intVarArray(this.Uj,0,this.Uj-this.Lj);
-                        DeltaJKm[j] = cplex.intVarArray(this.Uj,0,this.Uj-this.Lj);
-                        for (int r=this.Lj; r<this.Uj; r++)
-                        {
-                            label = "Deltap_" + (j+1) +'^'+ (r+1);
-                            DeltaJKp[j][r] = cplex.intVar(0, this.Uj-r,label);
-                            label = "Deltam_" + (j+1) +'^'+ (r+1);
-                            DeltaJKm[j][r] = cplex.intVar(0, r-this.Lj,label);
-                        }
+                if(AlterID==3 || AlterID==4){ //Alter3 & Alter4
+                    DeltaBJrp = new IloNumVar[this.nbStage-1][];//Alter3 & Alter4
+                    DeltaBJrm = new IloNumVar[this.nbStage-1][];//Alter3 & Alter4
+                    for (int j=0; j<this.nbStage-1; j++)//Alter3 & Alter4
+                    {//Alter3 & Alter4
+                        DeltaBJrp[j] = cplex.intVarArray(this.Maxit,0,this.Uj-this.Lj);//Alter3 & Alter4
+                        DeltaBJrm[j] = cplex.intVarArray(this.Maxit,0,this.Uj-this.Lj);//Alter3 & Alter4
+                        for (int r=0; r<this.Maxit; r++)//Alter3 & Alter4
+                        {//Alter3 & Alter4
+                            label = "Deltap_" + (j+1) +'^'+ (r+1);//Alter3 & Alter4
+                            DeltaBJrp[j][r] = cplex.intVar(0,this.Uj-this.Lj,label);//Alter3 & Alter4
+                            label = "Deltam_" + (j+1) +'^'+ (r+1);//Alter3 & Alter4
+                            DeltaBJrm[j][r] = cplex.intVar(0, this.Uj-this.Lj,label);//Alter3 & Alter4
+                        }//Alter3 & Alter4
+                    }//Alter3 & Alter4
+                }//Alter3 & Alter4
+                else{//Alter5
+                    DeltaJKp = new IloNumVar[this.nbStage-1][];//Alter5
+                    DeltaJKm = new IloNumVar[this.nbStage-1][];//Alter5
+                    this.Alter5_Delta=new boolean[this.nbStage-1][];
+                    for (int j=0; j<this.nbStage-1; j++)//
+                    {//
+                        DeltaJKp[j] = cplex.intVarArray(this.Uj,0,this.Uj-this.Lj);//Alter5
+                        DeltaJKm[j] = cplex.intVarArray(this.Uj,0,this.Uj-this.Lj);//Alter5
+                        for (int r=this.Lj; r<this.Uj; r++)//Alter5
+                        {//Alter5
+                            label = "Deltap_" + (j+1) +'^'+ (r+1);//Alter5
+                            DeltaJKp[j][r] = cplex.intVar(0, this.Uj-r,label);//Alter5
+                            label = "Deltam_" + (j+1) +'^'+ (r+1);//Alter5
+                            DeltaJKm[j][r] = cplex.intVar(0, r-this.Lj,label);//Alter5
+                        }//Alter5
                         this.Alter5_Delta[j]=new boolean[this.Uj];
                         for(int k=0;k<this.Uj;k++)
                             this.Alter5_Delta[j][k]=false;
@@ -811,69 +341,69 @@ public class SerialLine {
                 }
 
                 if(AlterID==3){
-                    YJR=new IloNumVar[this.NbStage-1][];
-                    for (int j=0; j<this.NbStage-1; j++)
-                    {
-                        YJR[j] = cplex.intVarArray(this.Maxit,0,1);
-                        for (int r=0; r<this.Maxit; r++)
-                        {
-                            label = "Yrj_" + (j+1) +'^'+ (r+1);
-                            YJR[j][r] = cplex.intVar(0, 1,label);
-                        }
-                    }
-                }
+                    YJR=new IloNumVar[this.nbStage-1][];////Alter3
+                    for (int j=0; j<this.nbStage-1; j++)//Alter3
+                    {//Alter3
+                        YJR[j] = cplex.intVarArray(this.Maxit,0,1);//Alter3
+                        for (int r=0; r<this.Maxit; r++)//Alter3
+                        {//Alter3
+                            label = "Yrj_" + (j+1) +'^'+ (r+1);//Alter3
+                            YJR[j][r] = cplex.intVar(0, 1,label);//Alter3
+                        }//Alter3
+                    }//Alter3
+                }//Alter3
                 else{
-                    YJK = new IloNumVar[this.NbStage-1][];
-                    for (int j=0; j<this.NbStage-1; j++)
+                    YJK = new IloNumVar[this.nbStage-1][];//Alter4 & 5
+                    for (int j=0; j<this.nbStage-1; j++)//Alter4 & 5
                     {
-                        YJK[j] = cplex.intVarArray(this.Uj,0,1);
-                        for (int r=0; r<this.Uj; r++)
+                        YJK[j] = cplex.intVarArray(this.Uj,0,1);//Alter4 & 5
+                        for (int r=0; r<this.Uj; r++)//Alter4 & 5
                         {
-                            label = "Yjk_" + (j+1) +'^'+ (r+1);
-                            YJK[j][r] = cplex.intVar(0, 1,label);
+                            label = "Yjk_" + (j+1) +'^'+ (r+1);//Alter4 & 5
+                            YJK[j][r] = cplex.intVar(0, 1,label);//Alter4 & 5
                         }
                     }
 
 
-                    for (int j=0; j<this.NbStage-1; j++)
+                    for (int j=0; j<this.nbStage-1; j++)//Alter4 & 5
                     {
-                        IloLinearNumExpr sumyjk_expr = cplex.linearNumExpr();
-                        IloRange rng;
-                        for (int k=1; k<this.Uj; k++)
+                        IloLinearNumExpr sumyjk_expr = cplex.linearNumExpr();//Alter4 & 5
+                        IloRange rng;//Alter4 & 5
+                        for (int k=1; k<this.Uj; k++)//Alter4 & 5
                         {
-                            sumyjk_expr.addTerm(1,YJK[j][k]);
+                            sumyjk_expr.addTerm(1,YJK[j][k]);//Alter4 & 5
                         }
-                        sumyjk_expr.addTerm(-1,BJ[j]);
-                        rng = cplex.addEq(sumyjk_expr,0);
-                        rng.setName("sumyjk" + j);
+                        sumyjk_expr.addTerm(-1,BJ[j]);//Alter4 & 5
+                        rng = cplex.addEq(sumyjk_expr,0);//Alter4 & 5
+                        rng.setName("sumyjk" + j);//Alter4 & 5
                     }
 
-                    for (int j=0; j<this.NbStage-1; j++)
+                    for (int j=0; j<this.nbStage-1; j++)//Alter4 & 5
                     {
-                        for (int k=1; k<this.Uj; k++)
+                        for (int k=1; k<this.Uj; k++)//Alter4 & 5
                         {
-                            IloLinearNumExpr yjk_expr = cplex.linearNumExpr();
-                            IloRange rng;
-                            yjk_expr.addTerm(1,YJK[j][k]);
-                            yjk_expr.addTerm(-1,YJK[j][k-1]);
-                            rng = cplex.addLe(yjk_expr,0);
-                            rng.setName("yjk" + j);
+                            IloLinearNumExpr yjk_expr = cplex.linearNumExpr();//Alter4 & 5
+                            IloRange rng;//Alter4 & 5
+                            yjk_expr.addTerm(1,YJK[j][k]);//Alter4 & 5
+                            yjk_expr.addTerm(-1,YJK[j][k-1]);//Alter4 & 5
+                            rng = cplex.addLe(yjk_expr,0);//Alter4 & 5
+                            rng.setName("yjk" + j);//Alter4 & 5
                         }
                     }
-                    for (int j=0; j<this.NbStage-1; j++)
+                    for (int j=0; j<this.nbStage-1; j++)//Alter4 & 5
                     {
-                        for(int k=0;k<=this.Lj;k++){
-                            IloLinearNumExpr yjk_expr = cplex.linearNumExpr();
-                            IloRange rng;
-                            yjk_expr.addTerm(1,YJK[j][k]);
-                            rng = cplex.addEq(yjk_expr,1);
-                            rng.setName("yj0" + j);
+                        for(int k=0;k<=this.Lj;k++){//Alter4 & 5
+                            IloLinearNumExpr yjk_expr = cplex.linearNumExpr();//Alter4 & 5
+                            IloRange rng;//Alter4 & 5
+                            yjk_expr.addTerm(1,YJK[j][k]);//Alter4 & 5
+                            rng = cplex.addEq(yjk_expr,1);//Alter4 & 5
+                            rng.setName("yj0" + j);//Alter4 & 5
                         }
                     }
                 }
+/////////////////////////////////////////以下代码已被上面的某一部分替换//////////////////////////////////////////////////
 
-
-                /*if(AlterID==5){
+                if(AlterID==5){
                     for (int j=0; j<this.NbStage-1; j++){
                         for(int k=1;k<this.Uj[j];k++){
                             IloLinearNumExpr singlebj_expr = cplex.linearNumExpr();
@@ -898,55 +428,57 @@ public class SerialLine {
                             rng.setName("def: Deltam_" + (j+1) +'^'+ (k+1));
                         }
                     }
-                }*/
+                }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
             }
 
             if(Stolletz)
             {
-                ZJK = new IloNumVar[this.NbStage-1][];
-                for (int j=0; j<this.NbStage-1; j++)
+                ZJK = new IloNumVar[this.nbStage-1][];// Stolletz
+                for (int j=0; j<this.nbStage-1; j++)
                 {
-                    ZJK[j] = cplex.boolVarArray(this.Uj);
+                    ZJK[j] = cplex.boolVarArray(this.Uj);// Stolletz
                 }
             }
 
             //objective function
-            this.objective = cplex.linearNumExpr();
-            for (int j=0; j<this.NbStage-1; j++)
-                this.objective.addTerm(1,BJ[j]);
+            this.objective = cplex.linearNumExpr();// BendersBAP
+            for (int j=0; j<this.nbStage-1; j++)// BendersBAP
+                this.objective.addTerm(1,BJ[j]);// BendersBAP
 
 
             if(Stolletz)
             {
                 //constraint (8) Stolletz
-                for (int j=0; j<this.NbStage-1; j++)
+                for (int j=0; j<this.nbStage-1; j++) // Stolletz
                 {
-                    IloLinearNumExpr sumzjk_expr = cplex.linearNumExpr();
-                    IloRange rng;
-                    for (int k=0; k<this.Uj; k++)
+                    IloLinearNumExpr sumzjk_expr = cplex.linearNumExpr();// Stolletz
+                    IloRange rng;// Stolletz
+                    for (int k=0; k<this.Uj; k++)// Stolletz
                     {
-                        sumzjk_expr.addTerm(1,ZJK[j][k]);
+                        sumzjk_expr.addTerm(1,ZJK[j][k]);// Stolletz
                     }
-                    rng = cplex.addEq(sumzjk_expr,1.0);
-                    rng.setName("sumk" + j);
+                    rng = cplex.addEq(sumzjk_expr,1.0);// Stolletz
+                    rng.setName("sumk" + j);// Stolletz
                 }
 
                 //constraint (9) Stolletz
-                for (int j=0; j<this.NbStage-1; j++)
+                for (int j=0; j<this.nbStage-1; j++)// Stolletz
                 {
-                    IloLinearNumExpr sumzjk_expr = cplex.linearNumExpr();
-                    IloRange rng;
-                    sumzjk_expr.addTerm(1,BJ[j]);
-                    for (int k=0; k<this.Uj; k++)
+                    IloLinearNumExpr sumzjk_expr = cplex.linearNumExpr();// Stolletz
+                    IloRange rng;// Stolletz
+                    sumzjk_expr.addTerm(1,BJ[j]);// Stolletz
+                    for (int k=0; k<this.Uj; k++)// Stolletz
                     {
-                        sumzjk_expr.addTerm(-k,ZJK[j][k]);
+                        sumzjk_expr.addTerm(-k,ZJK[j][k]);// Stolletz
                     }
-                    rng = cplex.addEq(sumzjk_expr,0);
-                    rng.setName("cap" + j);
+                    rng = cplex.addEq(sumzjk_expr,0);// Stolletz
+                    rng.setName("cap" + j);// Stolletz
                 }
             }
 
-            cplex.addMinimize(this.objective);
+            cplex.addMinimize(this.objective);// BendersBAP
 
 
             //E: RISOLUZIONE DEL MODELLO
@@ -959,12 +491,12 @@ public class SerialLine {
                 }
                 //save current solution
                 int totcap = 0;
-                for(int j=0;j<this.NbStage-1;j++)
+                for(int j=0;j<this.nbStage-1;j++)
                 {
                     //this.BJsol[j][0] = (int) (cplex.getValue(this.BJ[j]));
                     this.BJsol[j][0] = this.Lj;
-                    this.Buffer[j]=this.Lj;
-                    totcap = this.Buffer[j] + totcap;
+                    this.buffer[j]=this.Lj;
+                    totcap = this.buffer[j] + totcap;
                 }
                 this.writer.write("it 0 OF: "+ totcap + "\r\n");
             }
@@ -981,7 +513,7 @@ public class SerialLine {
     }
 
 
-    public void AddFeasibilityCut(
+    /*public void AddFeasibilityCut(
             int n,
             int numint,
             double[][] tij,
@@ -999,7 +531,7 @@ public class SerialLine {
             {
 
                 if(AlterID==3||AlterID==4){
-                    for (int j=0; j<this.NbStage-1; j++)
+                    for (int j=0; j<this.nbStage-1; j++)
                     {
                         IloLinearNumExpr singlebj_expr = cplex.linearNumExpr();
                         IloRange rng;
@@ -1011,7 +543,7 @@ public class SerialLine {
                     }
 
                     if(AlterID==3){
-                        for (int j=0; j<this.NbStage-1; j++)
+                        for (int j=0; j<this.nbStage-1; j++)
                         {
                             IloLinearNumExpr singlebj_expr = cplex.linearNumExpr();
                             IloRange rng;
@@ -1021,7 +553,7 @@ public class SerialLine {
                             rng.setName("def: Deltap_" + (j+1) +'^'+ (nnint+1));
                         }
 
-                        for (int j=0; j<this.NbStage-1; j++)
+                        for (int j=0; j<this.nbStage-1; j++)
                         {
                             IloLinearNumExpr singlebj_expr = cplex.linearNumExpr();
                             IloRange rng;
@@ -1054,27 +586,27 @@ public class SerialLine {
                     }
                 }
                 else{
-                    for(int j=0;j<this.NbStage-1;j++){
-                        if(!this.Alter5_Delta[j][this.Buffer[j]]){
+                    for(int j=0;j<this.nbStage-1;j++){
+                        if(!this.Alter5_Delta[j][this.buffer[j]]){
 
                                     IloLinearNumExpr singlebj_expr = cplex.linearNumExpr();
                                     IloRange rng;
-                                    singlebj_expr.addTerm(1,DeltaJKp[j][this.Buffer[j]]);
+                                    singlebj_expr.addTerm(1,DeltaJKp[j][this.buffer[j]]);
                                     singlebj_expr.addTerm(-1,BJ[j]);
-                                    for(int l=1;l<=this.Buffer[j];l++)
+                                    for(int l=1;l<=this.buffer[j];l++)
                                         singlebj_expr.addTerm(1,YJK[j][l]);
                                     rng = cplex.addEq(singlebj_expr, 0) ;
-                                    rng.setName("def: Deltap_" + (j+1) +'^'+ (this.Buffer[j]));
+                                    rng.setName("def: Deltap_" + (j+1) +'^'+ (this.buffer[j]));
 
 
                                     singlebj_expr = cplex.linearNumExpr();
-                                    singlebj_expr.addTerm(1,DeltaJKm[j][this.Buffer[j]]);
-                                    for(int l=1;l<=this.Buffer[j];l++)
+                                    singlebj_expr.addTerm(1,DeltaJKm[j][this.buffer[j]]);
+                                    for(int l=1;l<=this.buffer[j];l++)
                                         singlebj_expr.addTerm(1,YJK[j][l]);
-                                    rng = cplex.addEq(singlebj_expr, this.Buffer[j]) ;
-                                    rng.setName("def: Deltam_" + (j+1) +'^'+ (this.Buffer[j]));
+                                    rng = cplex.addEq(singlebj_expr, this.buffer[j]) ;
+                                    rng.setName("def: Deltam_" + (j+1) +'^'+ (this.buffer[j]));
 
-                            this.Alter5_Delta[j][this.Buffer[j]]=true;
+                            this.Alter5_Delta[j][this.buffer[j]]=true;
                         }
                     }
 
@@ -1082,41 +614,41 @@ public class SerialLine {
 
                 }
 
-                ///************************* feasibility cut ****************************************///////////////////////////////////
+                ///////////////////////////////// feasibility cut ///////////////////////////////////
                 for(int j=0;j<this.NbStage -1;j++)                                                                              ////////
                 {                                                                                                               ////////
                     for (int i=0;i<n;i++)                                                                                       ////////
                         {                                                                                                       ////////
-                       DeltapPar[j][nnint]= DeltapPar[j][nnint] + (double)this.wbarij[i][j]*mm.Mijk[i][j][BJsol[j][nnint]];     ////////
-                       DeltamPar[j][nnint]= DeltamPar[j][nnint] + (double)this.wbarij[i][j]*mm.mijk[i][j][BJsol[j][nnint]];     ////////
+                       DeltapPar[j][nnint]= DeltapPar[j][nnint] + (double)this.wbarij[i][j]*mm.Mijk[i][j][BJsol[j][nnint]]; //done    ////////
+                       DeltamPar[j][nnint]= DeltamPar[j][nnint] + (double)this.wbarij[i][j]*mm.mijk[i][j][BJsol[j][nnint]]; //done     ////////
                     }                                                                                                           ////////
                 }                                                                                                               ////////                                                                                  ///////////////////////////////
                                                                                                                                 ////////
                                                                                                                                 ////////
-                double tijpar=0.0;                                                                                              ////////
+                double tijpar=0.0;   //done                                                                                           ////////
                 for(int j=0;j<this.NbStage;j++)                                                                                 ////////
                 {                                                                                                               ////////
                     for (int i=0;i<n;i++)                                                                                       ////////
                     {                                                                                                           ////////
-                        tijpar = tijpar + tij[i][j]*(double)this.ubarij[i][j];                                                  ////////
+                        tijpar = tijpar + tij[i][j]*(double)this.ubarij[i][j]; //done                                                  ////////
                     }                                                                                                           ////////
                 }                                                                                                               ////////
                                                                                                                                 ////////
                                                                                                                                 ////////
-                double thetapar = thetabar/this.THstar;//E: if theta is an array, then change this formulation                  ////////
+                double thetapar = thetabar/this.THstar;//done //E: if theta is an array, then change this formulation                  ////////
                 IloLinearNumExpr sumBJcut_expr = cplex.linearNumExpr();                                                         ////////
                 IloRange rng;                                                                                                   ////////
-                ///*************************MP-alter3/4 ****************************************////////////////////////////////////////
+                /////////////////////////////////MP-alter3/4 ////////////////////////////////////////
                 if(AlterID==3 || AlterID==4){
-                    for (int j=0; j<this.NbStage-1; j++)
+                    for (int j=0; j<this.nbStage-1; j++)
                     {                                                                                                               ////////
                         sumBJcut_expr.addTerm(-DeltapPar[j][nnint],DeltaBJrp[j][nnint]);                                            ////////
                         sumBJcut_expr.addTerm(+DeltamPar[j][nnint],DeltaBJrm[j][nnint]);                                            ////////
                     }
                 }
                 else{
-                    ///*************************MP-alter5 ****************************************//////////////////////////////////////////
-                    for (int j=0; j<this.NbStage-1; j++)                                                                            ////////
+                    /////////////////////////////////MP-alter5 //////////////////////////////////////////
+                    for (int j=0; j<this.nbStage-1; j++)                                                                            ////////
                     {                                                                                                               ////////
                         sumBJcut_expr.addTerm(-DeltapPar[j][nnint],DeltaJKp[j][BJsol[j][nnint]]);                                   ////////
                         sumBJcut_expr.addTerm(+DeltamPar[j][nnint],DeltaJKm[j][BJsol[j][nnint]]);                                   ////////
@@ -1161,11 +693,6 @@ public class SerialLine {
                     //MP-Alter3
                     this.BJsol[j][nnint+1] =  (int)  (cplex.getValue(this.BJ[j])+0.1);
                     Buffer[j] =  (int) (cplex.getValue(this.BJ[j])+0.1);
-
-                    //MP-Alter0
-                    /*this.BJsol[j][nnint+1] =  (int) (this.BJsol[j][nnint] +  cplex.getValue(this.DeltaBJrp[j][nnint]) - cplex.getValue(this.DeltaBJrm[j][nnint]));
-                    Buffer[j]=(int) (this.BJsol[j][nnint] +  cplex.getValue(this.DeltaBJrp[j][nnint]) - cplex.getValue(this.DeltaBJrm[j][nnint]));*/
-
                 }
 
             }
@@ -1178,7 +705,7 @@ public class SerialLine {
         catch (Exception exc) {
             exc.printStackTrace();
         }
-    }
+    }*/
 
 
 }
