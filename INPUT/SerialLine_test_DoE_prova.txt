@@ -1,0 +1,15 @@
+Jobs: 100000
+Warmup: 1
+Lj: 1
+Uj: 20
+NbStage_factors: 1 4
+TH: 1 0.115
+Distribution: Beta
+BN_CT: 10
+noBN_CT: 1 7
+alfa: 1 7.65
+beta: 1 2
+variance: 1 0.015
+Num_BNpositions: 12
+BN1_position: 0 0 0 1 0 0 0 1 1 1 2 2
+BN2_position: 1 2 3 2 4 5 6 3 4 5 3 4

@@ -1,0 +1,12 @@
+NbStage: 8
+Lj: 1
+Uj: 20
+THstar: 0.0033
+Buffer: 1 1 1 1 1 1 1 
+
+Cycletime:
+Distribution:	LogNorm	LogNorm	LogNorm	LogNorm	LogNorm	LogNorm	LogNorm	LogNorm
+Mean:		    261.789	264.773	267.429	248.276	265	252.874	265.625	267.708
+CV:		1	1	1	1	1	1	1	1
+Para3:          0       0       0	0	0	0	0	0
+Para4:          0       0       0	0	0	0	0	0
