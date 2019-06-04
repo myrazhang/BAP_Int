@@ -1,28 +1,34 @@
 package test_mainfunc;
 
+import test_mainfunc.simulation.SerialLine;
+import test_mainfunc.simulation.StochNum;
+
 import java.io.InputStream;
 import java.util.Scanner;
 
 import static java.lang.Math.sqrt;
 
 public class SystemCombinationsForDOE {
-    public int[] Jfactor;
-    public double[] THfactor;
-    public String distr;
-    public double BNct;
-    public double[] alphafactor;
-    public double[] betafactor;
-    public double[] noBNfactor;
-    public double[] varfactor;
-    public int[] BN1;
-    public int[] BN2;
-    public int Njobs;
-    public int W;
     public int Lj;
     public int Uj;
-    public String tempinstance;
+    int[] Jfactor;
+    double[] THfactor;
+    double[] alphafactor;
+    double[] noBNfactor;
+    double[] varfactor;
+    int[] BN1;
+    int[] BN2;
+    int Njobs;
+    int W;
+    String tempinstance;
+    private String distr;
+    private double BNct;
+    private double[] betafactor;
 
-    public SystemCombinationsForDOE(InputStream system){
+
+
+
+    SystemCombinationsForDOE(InputStream system){
         Scanner scanner=new Scanner (system);
         scanner.useDelimiter("\\s+");
 
@@ -111,16 +117,15 @@ public class SystemCombinationsForDOE {
             this.BN2[i]=scanner.nextInt();
         }
     }
-
-    public SerialLine getOneSystemConfiguration(int Jindex, int BNindex,int alphaindex, int noBNctindex, int varindex){
+    SerialLine getOneSystemConfiguration(int Jindex, int BNindex, int alphaindex, int noBNctindex, int varindex){
 
         SerialLine theSystem=new SerialLine();
         //save number of stages
         theSystem.nbStage = this.Jfactor[Jindex];
-        theSystem.buffer = new int[theSystem.nbStage - 1];
+        theSystem.buffer = new int[theSystem.nbStage];
         //save distribution information
-        theSystem.CT = new StochNum[theSystem.nbStage];
-        for (int j = 0; j < theSystem.nbStage; j++)
+        theSystem.CT = new StochNum[theSystem.nbStage+1];
+        for (int j = 1; j <= theSystem.nbStage; j++)
         {
             theSystem.CT[j]=new StochNum();
             theSystem.CT[j].distribution= this.distr;
@@ -130,11 +135,13 @@ public class SystemCombinationsForDOE {
             else if(theSystem.CT[j].distribution.equals("Exp")){
                 theSystem.CT[j].para1 = this.alphafactor[alphaindex];
             }//end if exponential
+            else
+                throw new UnsupportedOperationException("Cycle time distribution is not supported!");
         }
         return theSystem;
     }
 
-    public void CalculateBetaPar(int j,int BNindex,int alphaindex, int noBNctindex,int varindex, SerialLine theSystem){
+    private void CalculateBetaPar(int j,int BNindex,int alphaindex, int noBNctindex,int varindex, SerialLine theSystem){
         double alpha = this.alphafactor[alphaindex] ;
         double beta = this.betafactor[alphaindex] ;
         double boolvariance = alpha*beta/((alpha+beta)*(alpha+beta))*(alpha+beta+1);

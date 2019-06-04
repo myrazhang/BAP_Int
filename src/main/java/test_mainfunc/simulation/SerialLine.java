@@ -1,8 +1,4 @@
-package test_mainfunc;
-
-import java.io.*;
-import java.util.Scanner;
-import static java.lang.Math.*;
+package test_mainfunc.simulation;
 
 public class SerialLine {
     public int nbStage;
@@ -15,19 +11,19 @@ public class SerialLine {
     public double TH;
 
 
-    // constructing a SINGLE serial line from a input file is not needed currently.
+    // constructing a SINGLE serial line from a input file is not needed currently. For example:
     /*public SerialLine(InputStream system) {}*/
 
     public SerialLine(){}
 
     // Processing time generation
     public void procTimeGeneration(int N, double[][] pij,int seed){
-        double[][] pji=new double[this.nbStage][N];
-        for (int j = 0; j < this.nbStage; j++)
-            this.CT[j].iidGeneration(N,pji[j],seed);
+        double[][] pji=new double[this.nbStage+1][N+1];
+        for (int j = 1; j <= this.nbStage; j++)
+            this.CT[j].iidGeneration(N,pji[j],seed+j);
 
-        for(int i=0;i<N;i++){
-            for(int j=0;j<this.nbStage;j++)
+        for(int i=1;i<=N;i++){
+            for(int j=1;j<=this.nbStage;j++)
                 pij[i][j]=pji[j][i];
         }
     }
@@ -54,47 +50,49 @@ public class SerialLine {
         /////////////////////////////////////////////////////////////////////////////////////////
 
 
-        public double[][] tij;
+        double[][] tij;
+        public int[][] uij;
+        public int[][] wij;
+        int[][] vij;
+        int[][] sij;
+        int N;
+        int W;
+        private double[][] bar_Sij;
+        private double[][] bar_Dij;
         private double[][] Sij;
         private double[][] Dij;
         private int[][] bsij;
         private int[][] buij;
         private int[][] bvij;
         private int[][] bwij;
-        public int[][] uij;
-        public int[][] vij;
-        public int[][] wij;
-        public int[][] sij;
-        public int N;
-        public int W;
-        private double[][] bar_Sij;
-        private double[][] bar_Dij;
 
         public SimulationBAS(int N,int W,double[][] tij){
-            this.Sij=new double[N][nbStage];
-            this.Dij=new double[N][nbStage];
-            this.bsij = new int[N][nbStage];
-            this.buij = new int[N][nbStage];
-            this.bvij = new int[N][nbStage];
-            this.bwij = new int[N][nbStage];
-            this.sij = new int[N][nbStage];
-            this.uij = new int[N][nbStage];
-            this.vij = new int[N][nbStage];
-            this.wij = new int[N][nbStage];
-            this.bar_Dij=new double[W][nbStage];
-            this.bar_Sij=new double[W][nbStage];
+            this.N=N;
+            this.W=W;
             this.tij=tij;
+            this.Sij=new double[N+1][nbStage+1];
+            this.Dij=new double[N+1][nbStage+1];
+            this.bsij = new int[N+1][nbStage+1];
+            this.buij = new int[N+1][nbStage+1];
+            this.bvij = new int[N+1][nbStage+1];
+            this.bwij = new int[N+1][nbStage+1];
+            this.sij = new int[N+1][nbStage+1];
+            this.uij = new int[N+1][nbStage+1];
+            this.vij = new int[N+1][nbStage+1];
+            this.wij = new int[N+1][nbStage+1];
+            this.bar_Dij=new double[W+1][nbStage+1];
+            this.bar_Sij=new double[W+1][nbStage+1];
         }
 
         public void simBAS(boolean steadyState){
-            for (int i = 0; i < this.N; i++){
-                for (int j = 0; j < nbStage; j++){
+            for (int i = 1; i <= this.N; i++){
+                for (int j = 1; j <= nbStage; j++){
                     this.Sij[i][j] = 0;
                     this.Dij[i][j] = 0;
                 }
             }
-            for (int i = 0; i <this.N; i++){
-                for (int j = 0; j < nbStage; j++){
+            for (int i = 1; i <= this.N; i++){
+                for (int j = 1; j <= nbStage; j++){
                     bsij[i][j] = 0;
                     buij[i][j] = 0;
                     bvij[i][j] = 0;
@@ -103,36 +101,36 @@ public class SerialLine {
             }
 
             if(!steadyState){
-                for (int i = 0; i < this.N; i++) {
-                    for (int j = 0; j < nbStage; j++){
+                for (int i = 1; i <= this.N; i++) {
+                    for (int j = 1; j <= nbStage; j++){
                         this.start_BAS(i,j);
                         this.departure_BAS(i,j);
                     }
                 }
-                for (int j = 0; j < nbStage; j++) {
-                    for (int i = 0; i < this.W; i++) {
+                for (int j = 1; j <= nbStage; j++) {
+                    for (int i = 1; i <= this.W; i++) {
                         this.bar_Dij[i][j]=this.Dij[i][j];
                         this.bar_Sij[i][j]=this.Sij[i][j];
                     }
                 }
-                OverallCT = (this.Dij[this.N - 1][nbStage - 1] - this.Dij[this.W - 1][nbStage - 1]) / (double)(this.N - this.W);
+                OverallCT = (this.Dij[this.N][nbStage] - this.Dij[this.W][nbStage]) / (double)(this.N - this.W);
                 TH=(double) 1/OverallCT;
             }
             else{
-                for (int j = 0; j < nbStage; j++) {
-                    for (int i = 0; i < this.W; i++) {
+                for (int j = 1; j <= nbStage; j++) {
+                    for (int i = 1; i <= this.W; i++) {
                         this.Dij[i][j] = this.bar_Dij[i][j];
                         this.Sij[i][j] = this.bar_Sij[i][j];
                     }
                 }
 
-                for (int i = this.W; i < this.N; i++){
-                    for (int j = 0; j < nbStage; j++){
+                for (int i = this.W+1; i <= this.N; i++){
+                    for (int j = 1; j <= nbStage; j++){
                         this.start_BAS(i,j);
                         this.departure_BAS(i,j);
                     }
                 }
-                OverallCT = (this.Dij[N-1][nbStage-1]- Dij[W-1][nbStage-1])/ (double)(this.N-this.W);
+                OverallCT = (this.Dij[N][nbStage]- Dij[W][nbStage])/ (double)(this.N-this.W);
                 TH=(double) 1/OverallCT;
             }
         }
@@ -148,8 +146,8 @@ public class SerialLine {
             //*****************************************************************************
             //*****************************************************************************
 
-            for (int i = 0; i <this.N; i++){
-                for (int j = 0; j < nbStage; j++){
+            for (int i = 1; i <= this.N; i++){
+                for (int j = 1; j <= nbStage; j++){
                     this.sij[i][j] = 0;
                     this.uij[i][j] = 0;
                     this.vij[i][j] = 0;
@@ -168,16 +166,16 @@ public class SerialLine {
                 /////bvij[i][j] = 1: S[i][j] trigerred by D[i-1][j]             /////////////////////////////
                 /////bsij[i][j] = 1: S[i][j] trigerred by D[i][j-1]   STARVATION ////////////////////////////
                 /////////////////////////////////////////////////////////////////////////////////////////////
-                for (int i = this.N - 1; i >= 0; i--) {
-                    for (int j = nbStage - 1; j >=0 ; j--) {
+                for (int i = this.N; i >= 1; i--) {
+                    for (int j = nbStage; j >=1 ; j--) {
                         this.departure_dual(i,j);
                         this.start_dual(i,j);
                     }
                 }
             }
             else {
-                for (int i = this.N - 1; i >= this.W; i--){
-                    for (int j = nbStage - 1; j >= 0; j--){
+                for (int i = this.N; i >= this.W+1; i--){
+                    for (int j = nbStage; j >= 1; j--){
                         this.departure_dual(i,j);
                         this.start_dual(i,j);
                     }
@@ -187,15 +185,15 @@ public class SerialLine {
 
         private void start_BAS(int i0,int j0){
 
-            if(i0==0&& j0==0){
+            if(i0==1&& j0==1){
                 this.Sij[i0][j0]=0;
                 this.bsij[i0][j0] = 1;
             }
-            else if(i0==0){
+            else if(i0==1){
                 this.Sij[i0][j0]=this.Dij[i0][j0-1];
                 this.bsij[i0][j0] = 1;
             }
-            else if(j0==0){
+            else if(j0==1){
                 this.Sij[i0][j0]=this.Dij[i0-1][j0];
                 this.bvij[i0][j0] = 1;
             }
@@ -214,14 +212,15 @@ public class SerialLine {
 
         private void departure_BAS(int i0,int j0){
 
-            if (j0 < nbStage - 1 && i0 < buffer[j0]) {
+            if (j0 == nbStage) {
                 this.Dij[i0][j0] = this.Sij[i0][j0] + this.tij[i0][j0];
                 this.buij[i0][j0] = 1;
             }
-            else if (j0 == nbStage - 1) {
+            else if (i0 <= buffer[j0]) {
                 this.Dij[i0][j0] = this.Sij[i0][j0] + this.tij[i0][j0];
                 this.buij[i0][j0] = 1;
             }
+
             else {
                 if (this.Sij[i0][j0] + this.tij[i0][j0] > this.Sij[i0 - buffer[j0]][j0 + 1]) {
                     this.Dij[i0][j0] = this.Sij[i0][j0] + this.tij[i0][j0];
@@ -236,25 +235,24 @@ public class SerialLine {
 
         private void departure_dual(int i0, int j0 ){
 
-            if (i0 < this.N - 1 && j0 < nbStage - 1){
+            if (i0 < this.N && j0 < nbStage){
                 this.uij[i0][j0] = (this.vij[i0 + 1][j0] + this.sij[i0][j0 + 1])*this.buij[i0][j0];
                 this.wij[i0][j0] = (this.vij[i0 + 1][j0] + this.sij[i0][j0 + 1])*this.bwij[i0][j0];
             }
-            else if (i0 == this.N - 1 && j0 < nbStage - 1) {
+            else if (i0 == this.N && j0 < nbStage) {
                 this.uij[i0][j0] = (this.sij[i0][j0 + 1])*this.buij[i0][j0];
                 this.wij[i0][j0] = (this.sij[i0][j0 + 1])*this.bwij[i0][j0];
             }
-            else if (i0 < this.N - 1 && j0 == nbStage - 1) {
+            else if (i0 < this.N && j0 == nbStage) {
                 this.uij[i0][j0] = (this.vij[i0 + 1][j0])*this.buij[i0][j0];
             }
-            else if (i0 == this.N - 1 && j0 == nbStage - 1){
+            else if (i0 == this.N && j0 == nbStage){
                 this.uij[i0][j0] = 1;
             }
         }
 
-
         private void start_dual(int i0,int j0){
-            if (j0 > 0 && i0 < this.N - buffer[j0 - 1]) {
+            if (j0 > 1 && i0 <= this.N - buffer[j0 - 1]) {
                 this.sij[i0][j0] = (this.uij[i0][j0] + this.wij[i0 + buffer[j0 - 1]][j0 - 1])*this.bsij[i0][j0];
                 this.vij[i0][j0] = (this.uij[i0][j0] + this.wij[i0 + buffer[j0 - 1]][j0 - 1])*this.bvij[i0][j0];
             }

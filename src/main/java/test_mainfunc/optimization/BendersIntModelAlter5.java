@@ -1,8 +1,12 @@
-package test_mainfunc;
+package test_mainfunc.optimization;
 
+import ilog.concert.IloException;
 import ilog.concert.IloLinearNumExpr;
 import ilog.concert.IloNumVar;
 import ilog.concert.IloRange;
+import test_mainfunc.simulation.SerialLine;
+
+import static java.lang.Math.max;
 
 public class BendersIntModelAlter5 extends BendersIntModel {
 
@@ -13,31 +17,26 @@ public class BendersIntModelAlter5 extends BendersIntModel {
 
     public BendersIntModelAlter5(SerialLine system, double THstar, int[] lB, int[] uB, int N, int W){
         super(system, THstar,  lB, uB, N,  W);
-        this.delta=new boolean [this.mySystem.nbStage-1][];
-        for(int j=0;j<this.mySystem.nbStage-1;j++){
-            this.delta[j]=new boolean[this.upperBoundj[j]];
-            for(int k=0;k<this.upperBoundj[j]-1;k++)
+        this.delta=new boolean [this.mySystem.nbStage][];
+        for(int j=0;j<=this.mySystem.nbStage-1;j++){
+            this.delta[j]=new boolean[this.upperBoundj[j]+1];
+            for(int k=0;k<=this.upperBoundj[j];k++)
                 delta[j][k]=false;
         }
-
     }
 
 
     @Override
-    public void solveBAPWithIntModel(double[][] tij){
+    public void solveBAPWithIntModel(double[][] tij)throws IloException {
         this.writer.println("Alter 5:");
         super.solveBAPWithIntModel(tij);
-
     }
-
 
     @Override
     public void addFeasibilityCut(){
-
         try{
 
-            //todo: this is a new section, bugs may exist in the for loop below
-            for(int j=0;j<this.mySystem.nbStage-1;j++){
+            for(int j=1;j<=this.mySystem.nbStage-1;j++){
                 if(!this.delta[j][this.mySystem.buffer[j]]){
 
                     IloLinearNumExpr singlebj_expr = cplex.linearNumExpr();
@@ -47,7 +46,7 @@ public class BendersIntModelAlter5 extends BendersIntModel {
                     for(int l=1;l<=this.mySystem.buffer[j];l++)
                         singlebj_expr.addTerm(1,this.yjk[j][l]);
                     rng = cplex.addEq(singlebj_expr, 0) ;
-                    rng.setName("def: Deltap_" + (j+1) +'^'+ (this.mySystem.buffer[j]));
+                    rng.setName("def: Deltap_" + (j) +'^'+ (this.mySystem.buffer[j]));
 
 
                     singlebj_expr = cplex.linearNumExpr();
@@ -55,7 +54,7 @@ public class BendersIntModelAlter5 extends BendersIntModel {
                     for(int l=1;l<=this.mySystem.buffer[j];l++)
                         singlebj_expr.addTerm(1,this.yjk[j][l]);
                     rng = cplex.addEq(singlebj_expr, this.mySystem.buffer[j]) ;
-                    rng.setName("def: Deltam_" + (j+1) +'^'+ (this.mySystem.buffer[j]));
+                    rng.setName("def: Deltam_" + (j) +'^'+ (this.mySystem.buffer[j]));
 
                     this.delta[j][this.mySystem.buffer[j]]=true;
                 }
@@ -65,7 +64,7 @@ public class BendersIntModelAlter5 extends BendersIntModel {
             IloLinearNumExpr sumBJcut_expr = cplex.linearNumExpr();
             sumBJcut_expr.setConstant(this.newCut.constantTerm);
             IloRange rng;
-            for (int j=0; j<this.mySystem.nbStage-1; j++)
+            for (int j=1; j<=this.mySystem.nbStage-1; j++)
             {
                 sumBJcut_expr.addTerm(+this.newCut.coefdeltaP[j],this.deltaPjk[j][mySystem.buffer[j]]);
                 sumBJcut_expr.addTerm(+this.newCut.coefdeltaM[j],this.deltaMjk[j][mySystem.buffer[j]]);
@@ -81,35 +80,33 @@ public class BendersIntModelAlter5 extends BendersIntModel {
     }
 
     @Override
-    public void setupVariables(){
+    public void setupVariables() throws IloException {
+        super.setupVariables();
         try{
-            this.yjk=new IloNumVar[this.mySystem.nbStage-1][];
-            for(int j=0;j<this.mySystem.nbStage;j++){
-                this.yjk[j]=new IloNumVar[this.upperBoundj[j]];
-                for(int k=0;k<this.upperBoundj[j];k++)
-                    this.yjk[j][k]=cplex.boolVar();
-            }
+            this.yjk=new IloNumVar[this.mySystem.nbStage][];
+            for(int j=0;j<=this.mySystem.nbStage-1;j++){
 
-            this.deltaPjk = new IloNumVar[this.mySystem.nbStage-1][];
-            this.deltaMjk = new IloNumVar[this.mySystem.nbStage-1][];
-            String label;
-            for (int j=0; j<this.mySystem.nbStage-1; j++)
-            {
-                this.deltaPjk[j] = new IloNumVar[this.upperBoundj[j]];
-                this.deltaMjk[j] = new IloNumVar[this.upperBoundj[j]];
-
-                for(int k=0;k<this.lowerBoundj[j];k++){
-                    label = "Deltap_" + (j+1) +'^'+ (k+1);
-                    deltaPjk[j][k] = cplex.intVar(0, this.upperBoundj[j],label);
-                    label = "Deltam_" + (j+1) +'^'+ (k+1);
-                    deltaPjk[j][k] = cplex.intVar(0, this.upperBoundj[j],label);
+                this.yjk[j]=new IloNumVar[this.upperBoundj[j]+1];
+                for(int k=0;k<=this.upperBoundj[j];k++){
+                    String label="y_"+j+"_"+k;
+                    this.yjk[j][k]=cplex.boolVar(label);
                 }
 
-                for(int k=this.lowerBoundj[j];k<this.upperBoundj[j];k++){
-                    label = "Deltap_" + (j+1) +'^'+ (k+1);
+            }
+
+            this.deltaPjk = new IloNumVar[this.mySystem.nbStage][];
+            this.deltaMjk = new IloNumVar[this.mySystem.nbStage][];
+            String label;
+            for (int j=1; j<=this.mySystem.nbStage-1; j++)
+            {
+                this.deltaPjk[j] = new IloNumVar[this.upperBoundj[j]+1];
+                this.deltaMjk[j] = new IloNumVar[this.upperBoundj[j]+1];
+
+                for(int k=1;k<=this.upperBoundj[j];k++){
+                    label = "Deltap_" + (j) +'^'+ (k);
                     deltaPjk[j][k] = cplex.intVar(0, this.upperBoundj[j]-k,label);
-                    label = "Deltam_" + (j+1) +'^'+ (k+1);
-                    deltaMjk[j][k] = cplex.intVar(0, k-this.lowerBoundj[j],label);
+                    label = "Deltam_" + (j) +'^'+ (k);
+                    deltaMjk[j][k] = cplex.intVar(0, max(0,k-this.upperBoundj[j]),label);
                 }
             }
         }catch(Exception exc){exc.printStackTrace();}
@@ -118,38 +115,39 @@ public class BendersIntModelAlter5 extends BendersIntModel {
     @Override
     public void initialConstraints(){
         try{
-            for (int j=0; j<this.mySystem.nbStage-1; j++){
+            for (int j=1; j<=this.mySystem.nbStage-1; j++){
                 IloLinearNumExpr sumyjk_expr = cplex.linearNumExpr();
-                for (int k=1; k<this.upperBoundj[j]; k++)
+                for (int k=1; k<= this.upperBoundj[j]; k++)
                     sumyjk_expr.addTerm(1,yjk[j][k]);
                 sumyjk_expr.addTerm(-1,bj[j]);
                 this.InitialEqConstraints.add(sumyjk_expr);
             }
 
-            for (int j=0; j<this.mySystem.nbStage-1; j++){
-                for (int k=1; k<this.upperBoundj[j]; k++){
+            for (int j=1; j<=this.mySystem.nbStage-1; j++){
+                for (int k=1; k<=this.upperBoundj[j]; k++){
                     IloLinearNumExpr yjk_expr = cplex.linearNumExpr();
                     yjk_expr.addTerm(1,yjk[j][k]);
                     yjk_expr.addTerm(-1,yjk[j][k-1]);
                     this.InitialLeConstraints.add(yjk_expr);
                 }
             }
-            for (int j=0; j<this.mySystem.nbStage-1; j++)
+            for (int j=1; j<=this.mySystem.nbStage-1; j++)
             {
-                for(int k=0;k<=this.lowerBoundj[j];k++){
+                for(int k=1;k<=this.lowerBoundj[j];k++){
                     IloLinearNumExpr yjk_expr = cplex.linearNumExpr();
                     yjk_expr.addTerm(1,yjk[j][k]);
                     yjk_expr.setConstant(-1);
                     this.InitialEqConstraints.add(yjk_expr);
                 }
             }
+
         }catch(Exception exc){exc.printStackTrace();}
     }
 
     @Override
-    public void solveMasterProb(){
-        super.solveMasterProb();
-        //todo: 输出模型
+    void endMasterProb()throws IloException{
+        this.writer.println(this.cplex.getModel());
+        super.endMasterProb();
     }
 
 

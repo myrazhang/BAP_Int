@@ -11,5 +11,5 @@ alfa: 3 7.65 7.6 2
 beta: 3 2 7.6 7.65
 variance: 2 0.015 0.135
 Num_BNpositions: 12
-BN1_position: 0 0 0 1 0 0 0 1 1 1 2 2
-BN2_position: 1 2 3 2 4 5 6 3 4 5 3 4
+BN1_position: 1 1 1 2 1 1 1 1 1 1 3 3
+BN2_position: 2 3 4 3 5 6 7 4 5 6 4 5

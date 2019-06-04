@@ -1,9 +1,13 @@
 package test_mainfunc;
 
+import test_mainfunc.optimization.BendersIntModelAlter5;
+import test_mainfunc.optimization.BendersStolletz;
+import test_mainfunc.simulation.SerialLine;
+import test_mainfunc.util.Stopwatch;
+
 import java.io.*;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.util.Scanner;
 
 
 import static java.lang.Math.max;
@@ -14,7 +18,7 @@ public class Test_SerialLineSimulation {
         String programPath = System.getProperty("user.dir");
 
         //***   Input files   *********************************************************
-        String in_System = programPath + "\\INPUT\\SerialLine_test_DoE_prova.txt";
+        String in_System = programPath + "\\INPUT\\SerialLine_test_DoE.txt";
         InputStream in_SystemFile = null;
         try {
             in_SystemFile = new FileInputStream(in_System);
@@ -60,15 +64,15 @@ public class Test_SerialLineSimulation {
                                 SerialLine mySystem=new SerialLine();
                                 mySystem=myDOE.getOneSystemConfiguration(Jfac, BNfac, alfac, noBNctfac, varfac);
 
-                                int[] lB=new int[mySystem.nbStage-1];
-                                int[] uB=new int[mySystem.nbStage-1];
-                                for(int j=0;j<mySystem.nbStage-1;j++){
+                                int[] lB=new int[mySystem.nbStage];
+                                int[] uB=new int[mySystem.nbStage];
+                                for(int j=0;j<=mySystem.nbStage-1;j++){
                                     lB[j]=myDOE.Lj;
                                     uB[j]=myDOE.Uj;
                                 }
 
                                 // sampling
-                                double[][] tij=new double[myDOE.Njobs][mySystem.nbStage];
+                                double[][] tij=new double[myDOE.Njobs+1][mySystem.nbStage+1];
                                 int seed =(int) System.currentTimeMillis();
                                 mySystem.procTimeGeneration(myDOE.Njobs,tij,seed);
 
@@ -92,9 +96,12 @@ public class Test_SerialLineSimulation {
                                 myAlter5.writer = new PrintWriter(outRes, true);
 
 
-                                StopWatch totalAlter5Time=new StopWatch();
+                                Stopwatch totalAlter5Time=new Stopwatch();
                                 totalAlter5Time.start();
-                                myAlter5.solveBAPWithIntModel(tij);
+                                try{
+                                    myAlter5.solveBAPWithIntModel(tij);
+                                }catch(Exception exc){exc.printStackTrace();}
+
                                 totalAlter5Time.stop();
 
 
@@ -107,13 +114,16 @@ public class Test_SerialLineSimulation {
                                 BendersStolletz myStolletz=new BendersStolletz(mySystem, myDOE.THfactor[THfac], lB, uB, myDOE.Njobs, myDOE.W);
 
 
-                                StopWatch totalStolletzTime=new StopWatch();
+                                Stopwatch totalStolletzTime=new Stopwatch();
                                 totalStolletzTime.start();
-                                myStolletz.solveBAPWithStolletz(tij);
-                                totalAlter5Time.stop();
+                                try{
+                                    myStolletz.solveBAPWithStolletz(tij);
+                                }catch(Exception exc){exc.printStackTrace();}
+
+                                totalStolletzTime.stop();
 
                                 int totcap=0;
-                                for(int j=0;j<mySystem.nbStage-1;j++){
+                                for(int j=1;j<=mySystem.nbStage-1;j++){
                                     totcap = totcap+ mySystem.buffer[j];
                                 }
                                 //write on summary file
@@ -121,7 +131,6 @@ public class Test_SerialLineSimulation {
                                 writersum.println();
 
 
-                                //todo: all the clock and computation time
                                 //close single instance file
                                 try {
                                     outRes.close();
