@@ -102,11 +102,11 @@ public class BendersIntModelAlter5 extends BendersIntModel {
                 this.deltaPjk[j] = new IloNumVar[this.upperBoundj[j]+1];
                 this.deltaMjk[j] = new IloNumVar[this.upperBoundj[j]+1];
 
-                for(int k=1;k<=this.upperBoundj[j];k++){
+                for(int k=0;k<=this.upperBoundj[j];k++){
                     label = "Deltap_" + (j) +'^'+ (k);
                     deltaPjk[j][k] = cplex.intVar(0, this.upperBoundj[j]-k,label);
                     label = "Deltam_" + (j) +'^'+ (k);
-                    deltaMjk[j][k] = cplex.intVar(0, max(0,k-this.upperBoundj[j]),label);
+                    deltaMjk[j][k] = cplex.intVar(0, max(0,k-this.lowerBoundj[j]),label);
                 }
             }
         }catch(Exception exc){exc.printStackTrace();}

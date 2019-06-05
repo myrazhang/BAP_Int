@@ -13,8 +13,6 @@ public class BendersStolletz extends BendersBAP {
 
     public void solveBAPWithStolletz(double[][] tij) throws IloException{
 
-        //this.writer.println("Stolletz:");
-
         this.mySystem.mySimulation =this.mySystem.new SimulationBAS(this.simulationLength,this.warmupLength,tij);
         for(int j=1;j<=mySystem.nbStage-1;j++)
             this.mySystem.buffer[j]=lowerBoundj[j];

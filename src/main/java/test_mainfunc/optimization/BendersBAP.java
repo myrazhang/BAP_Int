@@ -27,7 +27,7 @@ public abstract class BendersBAP {
     public Stopwatch cplexTimeMeasure; // Total cplex time
     public PrintWriter writer; // Output file: this file
     private List<IterationSolution> bjsol;// Master problem solution of each iteration
-    private boolean solvability; // whether the problem is feasible or not.
+    boolean solvability; // whether the problem is feasible or not.
     // End of output
 
     // Cplex model elements
@@ -91,19 +91,9 @@ public abstract class BendersBAP {
             this.solvability=this.cplex.solve();
             this.cplexTimeMeasure.pause();
 
-            if(this.solvability){
-
-                int totcap = 0;
-                for(int j=1;j <= this.mySystem.nbStage-1;j++)
-                {
-                    totcap += this.cplex.getValue(this.bj[j]);
-                    this.writer.print(Double.toString(this.cplex.getValue(this.bj[j]))+',');
-                }
-                this.writer.println("it " + numit + " OF: "+ totcap);
-
-            }
-            else
+            if(!this.solvability)
                 System.out.println("No solution was found by Cplex!");
+
 
         }catch (Exception exc) {exc.printStackTrace();}
     }

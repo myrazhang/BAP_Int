@@ -10,8 +10,6 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
 
-import static java.lang.Math.max;
-
 public class Test_SerialLineSimulation {
 
     public static void main(String argv[]) {
@@ -39,6 +37,10 @@ public class Test_SerialLineSimulation {
             System.exit(-1);
         }
 
+        // Ouput format
+        DecimalFormat df;
+        df = new DecimalFormat("#.#####");
+        df.setRoundingMode(RoundingMode.CEILING);
 
         // System read from INPUT file
         SystemCombinationsForDOE myDOE=new SystemCombinationsForDOE(in_SystemFile);
@@ -76,14 +78,8 @@ public class Test_SerialLineSimulation {
                                 int seed =(int) System.currentTimeMillis();
                                 mySystem.procTimeGeneration(myDOE.Njobs,tij,seed);
 
-                                DecimalFormat df;
-                                df = new DecimalFormat("#.#####");
-                                df.setRoundingMode(RoundingMode.CEILING);
-
-                                //Optimization part with Alter 5
+                                //Start optimization with Alter 5
                                 BendersIntModelAlter5 myAlter5=new BendersIntModelAlter5(mySystem, myDOE.THfactor[THfac], lB, uB, myDOE.Njobs, myDOE.W);
-
-                                //output file
                                 myDOE.tempinstance = "J"+mySystem.nbStage+"_TH_"+myDOE.THfactor[THfac] +"_BN_"+myDOE.BN1[BNfac]+myDOE.BN2[BNfac]+"_alpha_"+myDOE.alphafactor[alfac]+"_BNf_"+myDOE.noBNfactor[noBNctfac]+"_var_"+myDOE.varfactor[varfac];
                                 String out_resFile = programPath +"\\OUTPUT\\Out_"+ myDOE.tempinstance + ".txt";
                                 OutputStream outRes= null;
@@ -107,12 +103,11 @@ public class Test_SerialLineSimulation {
 
                                 writersum.write(" " + mySystem.nbStage + " "+myAlter5.THstar +" "+myDOE.BN1[BNfac]+" " + myDOE.BN2[BNfac] +" "+myDOE.alphafactor[alfac]+" "+myDOE.noBNfactor[noBNctfac]+" "+myDOE.varfactor[varfac] + " ");
                                 writersum.write(myAlter5.numit + " " + df.format(totalAlter5Time.elapseTimeSeconds)+ " " +df.format(myAlter5.cplexTimeMeasure.elapseTimeSeconds)+ " ");
+                                // End Optimization with Alter5
 
 
-
-                                //optimization part with stolletz
+                                // Start optimization with stolletz
                                 BendersStolletz myStolletz=new BendersStolletz(mySystem, myDOE.THfactor[THfac], lB, uB, myDOE.Njobs, myDOE.W);
-
 
                                 Stopwatch totalStolletzTime=new Stopwatch();
                                 totalStolletzTime.start();
@@ -126,10 +121,10 @@ public class Test_SerialLineSimulation {
                                 for(int j=1;j<=mySystem.nbStage-1;j++){
                                     totcap = totcap+ mySystem.buffer[j];
                                 }
-                                //write on summary file
+
                                 writersum.write(myStolletz.numit + " " + df.format(totalStolletzTime.elapseTimeSeconds)+ " " +df.format(myStolletz.cplexTimeMeasure.elapseTimeSeconds)+ " " + totcap);
                                 writersum.println();
-
+                                //End of optimization with Stolletz
 
                                 //close single instance file
                                 try {

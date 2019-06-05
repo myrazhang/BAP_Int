@@ -33,7 +33,6 @@ public abstract class BendersIntModel extends BendersBAP {
             this.mySystem.buffer[j]=lowerBoundj[j];
 
         this.mySystem.mySimulation.simDualBAS(false);
-        this.THstar=mySystem.TH*1.2;
         this.saveIterationSolution();
 
         while((this.THstar-this.mySystem.TH > 0.0001)&&(numit < this.MAX_ITE)){
@@ -154,6 +153,19 @@ public abstract class BendersIntModel extends BendersBAP {
 
     }
 
+    @Override
+    public void solveMasterProb() throws IloException{
+        super.solveMasterProb();
+        if(this.solvability){
 
+            int totcap = 0;
+            for(int j=1;j <= this.mySystem.nbStage-1;j++)
+            {
+                totcap += this.cplex.getValue(this.bj[j]);
+                this.writer.print(Double.toString(this.cplex.getValue(this.bj[j]))+',');
+            }
+            this.writer.println("it " + numit + " OF: "+ totcap);
+        }
+    }
 
 }
