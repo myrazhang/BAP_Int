@@ -22,28 +22,35 @@ public class StochNum {
         double p;
         switch (this.distribution) {
             case "Norm":
-            NormalDistribution normalSample = new NormalDistribution(generator, this.para1, this.para1 * this.para2);
-            p = normalSample.sample();
-            for (int i = 0; i <= sampleSize; i++) {
-                while (p < 0 || p > 2 * this.para1) {
-                    p = normalSample.sample();
-                }
-                generatedSamples[i] = p;
+                NormalDistribution normalSample = new NormalDistribution(generator, this.para1, this.para1 * this.para2);
                 p = normalSample.sample();
+                for (int i = 0; i <= sampleSize; i++) {
+                    while (p < 0 || p > 2 * this.para1) {
+                        p = normalSample.sample();
+                    }
+                    generatedSamples[i] = p;
+                    p = normalSample.sample();
             }
+            break;
 
             case "Beta":
-            BetaDistribution betaSample=new BetaDistribution(generator, this.para1, this.para2);
-            p = betaSample.sample();
-            for (int i = 0; i <= sampleSize; i++) {
-                generatedSamples[i] =this.para3+ p * (this.para4 - this.para3);
+                BetaDistribution betaSample=new BetaDistribution(generator, this.para1, this.para2);
                 p = betaSample.sample();
-            }
+                for (int i = 0; i <= sampleSize; i++) {
+                    generatedSamples[i] =this.para3+ p * (this.para4 - this.para3);
+                    p = betaSample.sample();
+                }
+                break;
 
             case "Exp":
-            ExponentialDistribution expSample= new ExponentialDistribution(generator,this.para1);
-            for (int i = 0; i <= sampleSize; i++)
-                generatedSamples[i] =expSample.sample();
+                ExponentialDistribution expSample= new ExponentialDistribution(generator,this.para1);
+                for (int i = 0; i <= sampleSize; i++)
+                    generatedSamples[i] =expSample.sample();
+                break;
+
+            case "LogNorm":
+
+                break;
         }
     }
 }

@@ -6,7 +6,7 @@ NbStage_factors: 2 4 7
 TH: 2 0.08 0.09
 Distribution: Beta
 BN_CT: 10
-noBN_CT: 2 3 7
+noBN_CT: 2 9 7
 alfa: 3 7.65 7.6 2
 beta: 3 2 7.6 7.65
 variance: 2 0.015 0.135

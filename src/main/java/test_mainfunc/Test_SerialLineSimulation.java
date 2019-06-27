@@ -46,7 +46,10 @@ public class Test_SerialLineSimulation {
         SystemCombinationsForDOE myDOE=new SystemCombinationsForDOE(in_SystemFile);
         PrintWriter writersum = new PrintWriter(outRessummary, true);
 
-        writersum.println("J TH BN1 BN2 alpha CTnoBN var A5_numiter A5_comptime A5_cplext ST_numiter ST_comptime ST_cplext Optsol");
+       //todo: for test
+        //writersum.println("J TH BN1 BN2 alpha CTnoBN var A5_numiter A5_comptime A5_cplext ST_numiter ST_comptime ST_cplext Optsol");
+        writersum.println("J BN1 BN2 alpha CTnoBN var TH");
+        //todo: end of test
 
         int BNpositions=0;
         //here the DoE starts
@@ -63,8 +66,7 @@ public class Test_SerialLineSimulation {
                         for(int noBNctfac=0; noBNctfac< myDOE.noBNfactor.length;noBNctfac++){
                             for(int varfac=0; varfac< myDOE.varfactor.length;varfac++){
 
-                                SerialLine mySystem=new SerialLine();
-                                mySystem=myDOE.getOneSystemConfiguration(Jfac, BNfac, alfac, noBNctfac, varfac);
+                                SerialLine mySystem=myDOE.getOneSystemConfiguration(Jfac, BNfac, alfac, noBNctfac, varfac);
 
                                 int[] lB=new int[mySystem.nbStage];
                                 int[] uB=new int[mySystem.nbStage];
@@ -78,8 +80,25 @@ public class Test_SerialLineSimulation {
                                 int seed =(int) System.currentTimeMillis();
                                 mySystem.procTimeGeneration(myDOE.Njobs,tij,seed);
 
-                                //Start optimization with Alter 5
-                                BendersIntModelAlter5 myAlter5=new BendersIntModelAlter5(mySystem, myDOE.THfactor[THfac], lB, uB, myDOE.Njobs, myDOE.W);
+                                // todo: simulation to check throughput
+                                mySystem.mySimulation=mySystem.new SimulationBAS(myDOE.Njobs,myDOE.W,tij);
+                                for(int j=1;j<=mySystem.nbStage-1;j++)
+                                    mySystem.buffer[j]=lB[j];
+                                mySystem.mySimulation.simDualBAS(false);
+
+                                writersum.write(" " + mySystem.nbStage + " "+myDOE.BN1[BNfac]+" " + myDOE.BN2[BNfac] +" "+myDOE.alphafactor[alfac]+" "+ +myDOE.noBNfactor[noBNctfac]+" "+myDOE.varfactor[varfac]+" " + mySystem.TH);
+                                writersum.println();
+
+                                for(int j=1;j<=mySystem.nbStage-1;j++)
+                                    mySystem.buffer[j]=lB[j];
+                                mySystem.mySimulation.simDualBAS(false);
+
+                                writersum.write(" " + mySystem.nbStage + " "+myDOE.BN1[BNfac]+" " + myDOE.BN2[BNfac] +" "+myDOE.alphafactor[alfac]+" "+ +myDOE.noBNfactor[noBNctfac]+" "+myDOE.varfactor[varfac]+" " + mySystem.TH);
+                                writersum.println();
+                                // todo: end of test
+
+
+                                /*//Start optimization with Alter 5
                                 myDOE.tempinstance = "J"+mySystem.nbStage+"_TH_"+myDOE.THfactor[THfac] +"_BN_"+myDOE.BN1[BNfac]+myDOE.BN2[BNfac]+"_alpha_"+myDOE.alphafactor[alfac]+"_BNf_"+myDOE.noBNfactor[noBNctfac]+"_var_"+myDOE.varfactor[varfac];
                                 String out_resFile = programPath +"\\OUTPUT\\Out_"+ myDOE.tempinstance + ".txt";
                                 OutputStream outRes= null;
@@ -89,6 +108,7 @@ public class Test_SerialLineSimulation {
                                     e.printStackTrace();
                                     System.exit(-1);
                                 }
+                                BendersIntModelAlter5 myAlter5=new BendersIntModelAlter5(mySystem, myDOE.THfactor[THfac], lB, uB, myDOE.Njobs, myDOE.W);
                                 myAlter5.writer = new PrintWriter(outRes, true);
 
 
@@ -131,7 +151,7 @@ public class Test_SerialLineSimulation {
                                     outRes.close();
                                 } catch (IOException e) {
                                     e.printStackTrace();
-                                }
+                                }*/
                             }
                         }
 

@@ -144,7 +144,7 @@ public class SystemCombinationsForDOE {
     private void CalculateBetaPar(int j,int BNindex,int alphaindex, int noBNctindex,int varindex, SerialLine theSystem){
         double alpha = this.alphafactor[alphaindex] ;
         double beta = this.betafactor[alphaindex] ;
-        double boolvariance = alpha*beta/((alpha+beta)*(alpha+beta))*(alpha+beta+1);
+        double boolvariance = alpha*beta/((alpha+beta)*(alpha+beta)*(alpha+beta+1));
         double boolmean= alpha/(alpha+beta);
         double lowera=0;
         if(j==this.BN1[BNindex] || j == this.BN2[BNindex]){

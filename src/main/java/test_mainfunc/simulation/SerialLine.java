@@ -18,13 +18,13 @@ public class SerialLine {
 
     // Processing time generation
     public void procTimeGeneration(int N, double[][] pij,int seed){
-        double[][] pji=new double[this.nbStage+1][N+1];
-        for (int j = 1; j <= this.nbStage; j++)
-            this.CT[j].iidGeneration(N,pji[j],seed+j);
-
-        for(int i=1;i<=N;i++){
-            for(int j=1;j<=this.nbStage;j++)
-                pij[i][j]=pji[j][i];
+        for(int j=1;j<=this.nbStage;j++){
+            double[] pi=new double[N+1];
+                this.CT[j].iidGeneration(N,pi,seed+j);
+            for(int i=1;i<=N;i++){
+                double a=pi[i];
+                pij[i][j]=a;
+            }
         }
     }
 
