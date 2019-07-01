@@ -2,11 +2,12 @@ package test_mainfunc.simulation;
 
 import org.apache.commons.math3.distribution.BetaDistribution;
 import org.apache.commons.math3.distribution.ExponentialDistribution;
-import org.apache.commons.math3.distribution.NormalDistribution;
-import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.RandomGeneratorFactory;
 
 import java.util.Date;
+import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.math3.distribution.LogNormalDistribution;
+import org.apache.commons.math3.random.RandomGenerator;
 import java.util.Random;
 
 public class StochNum {
@@ -49,7 +50,13 @@ public class StochNum {
                 break;
 
             case "LogNorm":
-
+                //para1 is the mean, para2 is the coefficient of variation
+                LogNormalDistribution lognormalSample = new LogNormalDistribution(generator, this.para1, this.para1*this.para2 );
+                p = lognormalSample.sample();
+                for (int i = 0; i <= sampleSize; i++) {
+                    generatedSamples[i] = p;
+                    p = lognormalSample.sample();
+                }
                 break;
         }
     }

@@ -132,6 +132,7 @@ public class SerialLine {
                 }
                 OverallCT = (this.Dij[N][nbStage]- Dij[W][nbStage])/ (double)(this.N-this.W);
                 TH=(double) 1/OverallCT;
+
             }
         }
 

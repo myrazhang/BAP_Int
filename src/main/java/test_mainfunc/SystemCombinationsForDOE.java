@@ -135,6 +135,15 @@ public class SystemCombinationsForDOE {
             else if(theSystem.CT[j].distribution.equals("Exp")){
                 theSystem.CT[j].para1 = this.alphafactor[alphaindex];
             }//end if exponential
+            else if(theSystem.CT[j].distribution.equals("LogNorm")){
+                if(j==this.BN1[BNindex] || j == this.BN2[BNindex]){
+                    theSystem.CT[j].para1 = this.BNct;
+                }//end if BN stage
+                else{
+                    theSystem.CT[j].para1 = this.noBNfactor[noBNctindex];
+                }//end else no BN stage
+                theSystem.CT[j].para2 = this.alphafactor[alphaindex];
+            }//end if LogNorm
             else
                 throw new UnsupportedOperationException("Cycle time distribution is not supported!");
         }
