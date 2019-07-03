@@ -9,6 +9,8 @@ import java.io.*;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
+import static java.lang.Math.exp;
+
 
 public class Test_SerialLineSimulation {
 
@@ -48,7 +50,7 @@ public class Test_SerialLineSimulation {
 
        //todo: for test
         //writersum.println("J TH BN1 BN2 alpha CTnoBN var A5_numiter A5_comptime A5_cplext ST_numiter ST_comptime ST_cplext Optsol");
-        writersum.println("J BN1 BN2 alpha CTnoBN var TH");
+        writersum.println("J BN1 BN2 alpha CTnoBN var TH_B1 BN_eta_B1 TH_B20 BN_eta_B20");
         //todo: end of test
 
         int BNpositions=0;
@@ -60,13 +62,14 @@ public class Test_SerialLineSimulation {
             else if (myDOE.Jfactor[Jfac]==7){
                 BNpositions = 12;
             }
-            for(int THfac=0; THfac < myDOE.THfactor.length;THfac++){
+            for(int etaFac=0; etaFac < myDOE.etaFactor.length;etaFac++){
                 for(int BNfac=0; BNfac < BNpositions; BNfac++){
                     for(int alfac=0; alfac< myDOE.alphafactor.length; alfac++){
                         for(int noBNctfac=0; noBNctfac< myDOE.noBNfactor.length;noBNctfac++){
                             for(int varfac=0; varfac< myDOE.varfactor.length;varfac++){
 
                                 SerialLine mySystem=myDOE.getOneSystemConfiguration(Jfac, BNfac, alfac, noBNctfac, varfac);
+                                double meanBnCt=mySystem.CT[myDOE.BN1[BNfac]].getMean();
 
                                 int[] lB=new int[mySystem.nbStage];
                                 int[] uB=new int[mySystem.nbStage];
@@ -86,20 +89,27 @@ public class Test_SerialLineSimulation {
                                     mySystem.buffer[j]=lB[j];
                                 mySystem.mySimulation.simDualBAS(false);
 
-                                writersum.write(" " + mySystem.nbStage + " "+myDOE.BN1[BNfac]+" " + myDOE.BN2[BNfac] +" "+myDOE.alphafactor[alfac]+" "+ +myDOE.noBNfactor[noBNctfac]+" "+myDOE.varfactor[varfac]+" " + mySystem.TH);
-                                writersum.println();
 
                                 for(int j=1;j<=mySystem.nbStage-1;j++)
                                     mySystem.buffer[j]=lB[j];
                                 mySystem.mySimulation.simDualBAS(false);
 
-                                writersum.write(" " + mySystem.nbStage + " "+myDOE.BN1[BNfac]+" " + myDOE.BN2[BNfac] +" "+myDOE.alphafactor[alfac]+" "+ +myDOE.noBNfactor[noBNctfac]+" "+myDOE.varfactor[varfac]+" " + mySystem.TH);
+
+                                double BN_eta=mySystem.TH*meanBnCt;
+
+                                writersum.write(" " + mySystem.nbStage + " "+myDOE.BN1[BNfac]+" " + myDOE.BN2[BNfac] +" "+myDOE.alphafactor[alfac]+" "+ +myDOE.noBNfactor[noBNctfac]+" "+myDOE.varfactor[varfac]+" " + mySystem.TH+" "+BN_eta);
+                                for(int j=1;j<=mySystem.nbStage-1;j++)
+                                    mySystem.buffer[j]=uB[j];
+                                mySystem.mySimulation.simDualBAS(false);
+                                BN_eta=mySystem.TH*meanBnCt;
+                                writersum.write(" "+mySystem.TH+" "+BN_eta);
                                 writersum.println();
+
                                 // todo: end of test
 
 
-                                /*//Start optimization with Alter 5
-                                myDOE.tempinstance = "J"+mySystem.nbStage+"_TH_"+myDOE.THfactor[THfac] +"_BN_"+myDOE.BN1[BNfac]+myDOE.BN2[BNfac]+"_alpha_"+myDOE.alphafactor[alfac]+"_BNf_"+myDOE.noBNfactor[noBNctfac]+"_var_"+myDOE.varfactor[varfac];
+                                //Start optimization with Alter 5
+                                /*myDOE.tempinstance = "J"+mySystem.nbStage+"_TH_"+myDOE.etaFactor[etaFac] +"_BN_"+myDOE.BN1[BNfac]+myDOE.BN2[BNfac]+"_alpha_"+myDOE.alphafactor[alfac]+"_BNf_"+myDOE.noBNfactor[noBNctfac]+"_var_"+myDOE.varfactor[varfac];
                                 String out_resFile = programPath +"\\OUTPUT\\Out_"+ myDOE.tempinstance + ".txt";
                                 OutputStream outRes= null;
                                 try {
@@ -108,7 +118,7 @@ public class Test_SerialLineSimulation {
                                     e.printStackTrace();
                                     System.exit(-1);
                                 }
-                                BendersIntModelAlter5 myAlter5=new BendersIntModelAlter5(mySystem, myDOE.THfactor[THfac], lB, uB, myDOE.Njobs, myDOE.W);
+                                BendersIntModelAlter5 myAlter5=new BendersIntModelAlter5(mySystem, myDOE.etaFactor[etaFac]/meanBnCt, lB, uB, myDOE.Njobs, myDOE.W);
                                 myAlter5.writer = new PrintWriter(outRes, true);
 
 
@@ -127,7 +137,7 @@ public class Test_SerialLineSimulation {
 
 
                                 // Start optimization with stolletz
-                                BendersStolletz myStolletz=new BendersStolletz(mySystem, myDOE.THfactor[THfac], lB, uB, myDOE.Njobs, myDOE.W);
+                                BendersStolletz myStolletz=new BendersStolletz(mySystem, myDOE.etaFactor[etaFac]/meanBnCt, lB, uB, myDOE.Njobs, myDOE.W);
 
                                 Stopwatch totalStolletzTime=new Stopwatch();
                                 totalStolletzTime.start();

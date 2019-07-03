@@ -12,7 +12,7 @@ public class SystemCombinationsForDOE {
     public int Lj;
     public int Uj;
     int[] Jfactor;
-    double[] THfactor;
+    double[] etaFactor;
     double[] alphafactor;
     double[] noBNfactor;
     double[] varfactor;
@@ -22,7 +22,7 @@ public class SystemCombinationsForDOE {
     int W;
     String tempinstance;
     private String distr;
-    private double BNct;
+    double BNct;
     private double[] betafactor;
 
 
@@ -60,9 +60,9 @@ public class SystemCombinationsForDOE {
         //scan factor TH
         scanner.next();
         tempLength = scanner.nextInt();
-        this.THfactor = new double[tempLength];
-        for (int i=0; i<this.THfactor.length;i++){
-            this.THfactor[i]=scanner.nextDouble();
+        this.etaFactor = new double[tempLength];
+        for (int i=0; i<this.etaFactor.length;i++){
+            this.etaFactor[i]=scanner.nextDouble();
         }
 
 

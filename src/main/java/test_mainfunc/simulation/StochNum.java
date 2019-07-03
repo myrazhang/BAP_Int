@@ -10,55 +10,148 @@ import org.apache.commons.math3.distribution.LogNormalDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
 import java.util.Random;
 
+import static java.lang.Math.exp;
+import static java.lang.Math.pow;
+
 public class StochNum {
     public String distribution;
     public double para1, para2, para3, para4;
+    public String para1_label, para2_label, para3_label, para4_label;
 
 
     void iidGeneration(int sampleSize, double[] generatedSamples, int seed){
 
-        RandomGenerator generator = RandomGeneratorFactory.createRandomGenerator(new Random());
-        generator.setSeed(seed);
-
-        double p;
         switch (this.distribution) {
             case "Norm":
-                NormalDistribution normalSample = new NormalDistribution(generator, this.para1, this.para1 * this.para2);
-                p = normalSample.sample();
-                for (int i = 0; i <= sampleSize; i++) {
-                    while (p < 0 || p > 2 * this.para1) {
-                        p = normalSample.sample();
-                    }
-                    generatedSamples[i] = p;
-                    p = normalSample.sample();
-            }
+                Normal normalSample=new Normal();
+                normalSample.iidGeneration(sampleSize, generatedSamples, seed);
             break;
 
             case "Beta":
-                BetaDistribution betaSample=new BetaDistribution(generator, this.para1, this.para2);
-                p = betaSample.sample();
-                for (int i = 0; i <= sampleSize; i++) {
-                    generatedSamples[i] =this.para3+ p * (this.para4 - this.para3);
-                    p = betaSample.sample();
-                }
+                Beta betaSample=new Beta();
+                betaSample.iidGeneration(sampleSize, generatedSamples, seed);
                 break;
 
             case "Exp":
-                ExponentialDistribution expSample= new ExponentialDistribution(generator,this.para1);
-                for (int i = 0; i <= sampleSize; i++)
-                    generatedSamples[i] =expSample.sample();
+                Exponential expSample=new Exponential();
+                expSample.iidGeneration(sampleSize, generatedSamples, seed);
                 break;
 
             case "LogNorm":
-                //para1 is the mean, para2 is the coefficient of variation
-                LogNormalDistribution lognormalSample = new LogNormalDistribution(generator, this.para1, this.para1*this.para2 );
-                p = lognormalSample.sample();
-                for (int i = 0; i <= sampleSize; i++) {
-                    generatedSamples[i] = p;
-                    p = lognormalSample.sample();
-                }
+                LogNormal logNormSample=new LogNormal();
+                logNormSample.iidGeneration(sampleSize, generatedSamples, seed);
                 break;
+            default:
+                throw new UnsupportedOperationException("Distribution is not supported!");
+
         }
+    }
+
+    public double getMean(){
+        double mu=0;
+        switch (this.distribution){
+            case "Norm":
+                Normal normalSample=new Normal();
+                return normalSample.getMean();
+
+            case "Beta":
+                Beta betaSample=new Beta();
+                return betaSample.getMean();
+
+            case "Exp":
+                Exponential expSample=new Exponential();
+                return expSample.getMean();
+
+            case "LogNorm":
+                LogNormal logNormSample=new LogNormal();
+                return logNormSample.getMean();
+
+            default:
+                throw new UnsupportedOperationException("Distribution is not supported!");
+        }
+
+    }
+
+
+
+
+    private class Normal{
+        void iidGeneration(int sampleSize, double[] generatedSamples, int seed){
+            RandomGenerator generator = RandomGeneratorFactory.createRandomGenerator(new Random());
+            generator.setSeed(seed);
+
+            double p;
+            NormalDistribution normalSample = new NormalDistribution(generator, para1, para1 * para2);
+            p = normalSample.sample();
+            for (int i = 0; i <= sampleSize; i++) {
+                while (p < 0 || p > 2 * para1) {
+                    p = normalSample.sample();
+                }
+                generatedSamples[i] = p;
+                p = normalSample.sample();
+            }
+        }
+
+        double getMean(){
+            return para1;
+        }
+    }
+
+    private class Exponential{
+        void iidGeneration(int sampleSize, double[] generatedSamples, int seed){
+            RandomGenerator generator = RandomGeneratorFactory.createRandomGenerator(new Random());
+            generator.setSeed(seed);
+
+            double p;
+            ExponentialDistribution expSample= new ExponentialDistribution(generator,para1);
+            for (int i = 0; i <= sampleSize; i++)
+                generatedSamples[i] =expSample.sample();
+        }
+
+        double getMean(){
+            return para1;
+        }
+    }
+
+    private class Beta{
+        void iidGeneration(int sampleSize, double[] generatedSamples, int seed){
+            RandomGenerator generator = RandomGeneratorFactory.createRandomGenerator(new Random());
+            generator.setSeed(seed);
+
+            double p;
+            BetaDistribution betaSample=new BetaDistribution(generator, para1, para2);
+            p = betaSample.sample();
+            for (int i = 0; i <= sampleSize; i++) {
+                generatedSamples[i] =para3+ p * (para4 - para3);
+                p = betaSample.sample();
+            }
+        }
+
+        double getMean(){
+            return para1/(para1+para2);
+        }
+    }
+
+    private class LogNormal{
+        //para1 is the mean, para2 is the coefficient of variation of the NORMAL VARIATE
+
+        void iidGeneration(int sampleSize, double[] generatedSamples, int seed){
+            RandomGenerator generator = RandomGeneratorFactory.createRandomGenerator(new Random());
+            generator.setSeed(seed);
+
+            double p;
+            LogNormalDistribution lognormalSample = new LogNormalDistribution(generator, para1, para1*para2 );
+            p = lognormalSample.sample();
+            for (int i = 0; i <= sampleSize; i++) {
+                generatedSamples[i] = p;
+                p = lognormalSample.sample();
+            }
+        }
+
+        double getMean(){
+            return exp(para1+pow(para1*para2,2)/2);
+        }
+
     }
 }
 
