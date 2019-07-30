@@ -20,6 +20,7 @@ public abstract class BendersBAP {
     int simulationLength;
     int warmupLength;
     final int MAX_ITE=10000;
+    final double MAX_CPLEX_TIME=86400;
     // End of input
 
     //Output
@@ -87,13 +88,20 @@ public abstract class BendersBAP {
     public void initialConstraints(){}
     public void solveMasterProb() throws IloException{
         try{
+            double timeLimit=MAX_CPLEX_TIME-cplexTimeMeasure.elapseTimeSeconds;
+            cplex.setParam(IloCplex.DoubleParam.TiLim,timeLimit);
+
+
+
             this.cplexTimeMeasure.restart();
             this.solvability=this.cplex.solve();
             this.cplexTimeMeasure.pause();
 
             if(!this.solvability)
                 System.out.println("No solution was found by Cplex!");
-
+            else if(cplex.getCplexStatus()== IloCplex.CplexStatus.AbortTimeLim){
+                this.solvability=false;
+            }
 
         }catch (Exception exc) {exc.printStackTrace();}
     }

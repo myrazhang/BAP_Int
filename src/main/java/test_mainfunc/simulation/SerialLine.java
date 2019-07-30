@@ -1,5 +1,8 @@
 package test_mainfunc.simulation;
 
+import java.io.InputStream;
+import java.util.Scanner;
+
 public class SerialLine {
     public int nbStage;
     public int[] buffer;
@@ -15,6 +18,49 @@ public class SerialLine {
     /*public SerialLine(InputStream system) {}*/
 
     public SerialLine(){}
+
+    public SerialLine(InputStream inputFile){
+        Scanner scanner=new Scanner (inputFile);
+        scanner.useDelimiter("\\s+");
+
+        scanner.next();
+        this.nbStage=scanner.nextInt();
+
+        buffer=new int[nbStage];
+        CT=new StochNum[nbStage+1];
+
+        for(int j=1;j<=7;j++)
+            scanner.next();
+        for(int j=1;j<=nbStage-1;j++)
+            buffer[j]=scanner.nextInt();
+
+        scanner.next();
+        scanner.next();
+        for(int j=1;j<=nbStage;j++){
+            CT[j]=new StochNum();
+            CT[j].distribution=scanner.next();
+        }
+
+        scanner.next();
+        for(int j=1;j<=nbStage;j++){
+            CT[j].para1=scanner.nextDouble();
+        }
+
+        scanner.next();
+        for(int j=1;j<=nbStage;j++){
+            CT[j].para2=scanner.nextDouble();
+        }
+
+        scanner.next();
+        for(int j=1;j<=nbStage;j++){
+            CT[j].para3=scanner.nextDouble();
+        }
+
+        scanner.next();
+        for(int j=1;j<=nbStage;j++){
+            CT[j].para4=scanner.nextDouble();
+        }
+    }
 
     // Processing time generation
     public void procTimeGeneration(int N, double[][] pij,int seed){
@@ -84,7 +130,7 @@ public class SerialLine {
             this.bar_Sij=new double[W+1][nbStage+1];
         }
 
-        public void simBAS(boolean steadyState){
+        private void initialization(){
             for (int i = 1; i <= this.N; i++){
                 for (int j = 1; j <= nbStage; j++){
                     this.Sij[i][j] = 0;
@@ -99,6 +145,10 @@ public class SerialLine {
                     bwij[i][j] = 0;
                 }
             }
+        }
+
+        public void simBAS(boolean steadyState){
+            initialization();
 
             if(!steadyState){
                 for (int i = 1; i <= this.N; i++) {

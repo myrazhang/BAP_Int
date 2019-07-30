@@ -2,6 +2,7 @@ package test_mainfunc.optimization;
 
 import ilog.concert.IloException;
 import test_mainfunc.simulation.SerialLine;
+import test_mainfunc.util.Stopwatch;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -9,9 +10,9 @@ import static java.lang.Math.min;
 public abstract class BendersIntModel extends BendersBAP {
 
     FeasibilityCutCoef newCut;
-    private double[][][] mijk;
-    private double[][][] Mijk;
-    private double theta;
+    protected double[][][] mijk;
+    protected double[][][] Mijk;
+    protected double theta;
 
     // Constructor
     BendersIntModel(SerialLine system, double THstar, int[] lB, int[] uB, int N, int W){
@@ -26,16 +27,19 @@ public abstract class BendersIntModel extends BendersBAP {
     // Public methods
     public void solveBAPWithIntModel(double[][] tij) throws IloException {
 
+
         this.getMmValue(tij);
         this.mySystem.mySimulation = this.mySystem.new SimulationBAS(this.simulationLength,this.warmupLength,tij);
 
+
         for(int j=1;j<=mySystem.nbStage-1;j++)
             this.mySystem.buffer[j]=lowerBoundj[j];
-
         this.mySystem.mySimulation.simDualBAS(false);
         this.saveIterationSolution();
 
-        while((this.THstar-this.mySystem.TH > 0.0001)&&(numit < this.MAX_ITE)){
+
+        solvability=true;
+        while((this.THstar-this.mySystem.TH > 0.0001)&&(numit < this.MAX_ITE)&&solvability){
             numit++;
             this.generateFeasibilityCut(tij);
             this.addFeasibilityCut();
@@ -56,7 +60,7 @@ public abstract class BendersIntModel extends BendersBAP {
     }
 
     // Private & package-private methods
-    private void getMmValue(double[][] tij){
+    public void getMmValue(double[][] tij){
 
         // initialize
         this.Mijk=new double[this.simulationLength+1][this.mySystem.nbStage][];
@@ -69,10 +73,6 @@ public abstract class BendersIntModel extends BendersBAP {
                     this.mijk[i][j][k]=0;
                     this.Mijk[i][j][k]=100000;
                 }
-                /*for(int k = this.lowerBoundj[j]; k <= this.upperBoundj[j]; k++){
-                    this.mijk[i][j][k]=200000;
-                    this.Mijk[i][j][k]=0;
-                }*/
             }
         }
 
@@ -127,7 +127,7 @@ public abstract class BendersIntModel extends BendersBAP {
             }
         }
     }
-    private void generateFeasibilityCut(double[][] tij){
+    public void generateFeasibilityCut(double[][] tij){
 
         for(int j=1;j<=this.mySystem.nbStage -1;j++)
         {
@@ -135,8 +135,10 @@ public abstract class BendersIntModel extends BendersBAP {
             this.newCut.coefdeltaM[j]=0.0;
             for (int i= this.mySystem.buffer[j]+1;i<=this.simulationLength;i++)
             {
-                this.newCut.coefdeltaP[j]= this.newCut.coefdeltaP[j] + (double)this.mySystem.mySimulation.wij[i][j]*this.Mijk[i][j][this.mySystem.buffer[j]];
-                this.newCut.coefdeltaM[j]= this.newCut.coefdeltaM[j] + (double)this.mySystem.mySimulation.wij[i][j]*this.mijk[i][j][this.mySystem.buffer[j]];
+                if(this.mySystem.mySimulation.wij[i][j]>0){
+                    this.newCut.coefdeltaP[j]+=  (double)this.mySystem.mySimulation.wij[i][j]*this.Mijk[i][j][this.mySystem.buffer[j]];
+                    this.newCut.coefdeltaM[j]+=  (double)this.mySystem.mySimulation.wij[i][j]*this.mijk[i][j][this.mySystem.buffer[j]];
+                }
             }
             this.newCut.coefdeltaP[j]=-this.newCut.coefdeltaP[j];
         }
@@ -161,7 +163,7 @@ public abstract class BendersIntModel extends BendersBAP {
             int totcap = 0;
             for(int j=1;j <= this.mySystem.nbStage-1;j++)
             {
-                totcap += this.cplex.getValue(this.bj[j]);
+                totcap += (int) (this.cplex.getValue(this.bj[j])+0.1);
                 this.writer.print(Double.toString(this.cplex.getValue(this.bj[j]))+',');
             }
             this.writer.println("it " + numit + " OF: "+ totcap);

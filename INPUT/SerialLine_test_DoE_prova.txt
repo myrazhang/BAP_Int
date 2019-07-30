@@ -3,13 +3,13 @@ Warmup: 1
 Lj: 1
 Uj: 20
 NbStage_factors: 1 4
-TH: 1 0.115
-Distribution: Beta
-BN_CT: 10
-noBN_CT: 1 7
-alfa: 1 7.65
-beta: 1 2
-variance: 1 0.015
-Num_BNpositions: 12
-BN1_position: 1 1 1 2 1 1 1 2 2 2 3 3
-BN2_position: 2 3 4 3 5 6 7 4 5 6 4 5
+Eta: 1 0.55
+Distribution: LogNorm
+BN_CT_m: 2
+noBN_CT_m: 1 1.8
+sigma: 1 1
+%beta: 1 0
+%variance: 1 0
+Num_BNpositions: 1
+BN1_position: 1
+BN2_position: 2

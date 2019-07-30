@@ -20,7 +20,8 @@ public class BendersStolletz extends BendersBAP {
         this.mySystem.mySimulation.simBAS(false);
         this.saveIterationSolution();
 
-        while((this.THstar-this.mySystem.TH > 0.0001)&&(numit < this.MAX_ITE)){
+        solvability=true;
+        while((this.THstar-this.mySystem.TH > 0.0001)&&(numit < this.MAX_ITE)&&solvability){
             numit++;
 
             this.addFeasibilityCut();
