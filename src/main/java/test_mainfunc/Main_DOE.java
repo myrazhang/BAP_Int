@@ -49,8 +49,8 @@ public class Main_DOE {
         SystemCombinationsForDOE myDOE=new SystemCombinationsForDOE(in_SystemFile);
         PrintWriter writersum = new PrintWriter(outRessummary, true);
 
-        writersum.write( "nbStage THstar BN1 BN2 Sigma noBN_CT " +
-                "Alter5_numit Alter5_TotalTime Alter5_CplexTime Alter5_totalBuffer " +
+        writersum.write( "nbStage BNEfficiency BN1 BN2 Sigma noBN_CT " +
+                //"Alter5_numit Alter5_TotalTime Alter5_CplexTime Alter5_totalBuffer " +
                 "Alter6_numit Alter6_TotalTime Alter6_CplexTime Alter6_totalBuffer " +
                 "Stolletz_numit Stolletz_TotalTime Stolletz_CplexTime Stolletz_totalBuffer");
         writersum.println();
@@ -87,9 +87,10 @@ public class Main_DOE {
                                 int seed =(int) System.currentTimeMillis();
                                 mySystem.procTimeGeneration(myDOE.Njobs,tij,seed);
 
+                                writersum.write( mySystem.nbStage + " "+myDOE.etaFactor[etaFac] +" "+myDOE.BN1[BNfac]+" " + myDOE.BN2[BNfac] +" "+myDOE.alphafactor[alfac]+" "+myDOE.noBNfactor[noBNctfac]+" ");
 
                                 // Start optimization with Alter 5
-                                myDOE.tempinstance = "J"+mySystem.nbStage+"_TH_"+myDOE.etaFactor[etaFac] +"_BN_"+myDOE.BN1[BNfac]+myDOE.BN2[BNfac]+"_alpha_"+myDOE.alphafactor[alfac]+"_BNf_"+myDOE.noBNfactor[noBNctfac];
+                                /*myDOE.tempinstance = "J"+mySystem.nbStage+"_TH_"+myDOE.etaFactor[etaFac] +"_BN_"+myDOE.BN1[BNfac]+myDOE.BN2[BNfac]+"_alpha_"+myDOE.alphafactor[alfac]+"_BNf_"+myDOE.noBNfactor[noBNctfac];
                                 String out_resFile5 = programPath +File.separator+"OUTPUT"+File.separator+"Out_"+ myDOE.tempinstance + "_Alter5.txt";
                                 OutputStream outRes5= null;
                                 try {
@@ -116,7 +117,12 @@ public class Main_DOE {
 
                                 writersum.write( mySystem.nbStage + " "+myAlter5.THstar +" "+myDOE.BN1[BNfac]+" " + myDOE.BN2[BNfac] +" "+myDOE.alphafactor[alfac]+" "+myDOE.noBNfactor[noBNctfac]+" ");
                                 writersum.write(myAlter5.numit + " " + df.format(totalAlter5Time.elapseTimeSeconds)+ " " +df.format(myAlter5.cplexTimeMeasure.elapseTimeSeconds)+ " " + totcap+" ");
-                                // End Optimization with Alter5
+                                try {
+                                    outRes5.close();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                // End Optimization with Alter5*/
 
 
                                 // Start optimization with Alter 6
@@ -140,7 +146,7 @@ public class Main_DOE {
 
                                 totalAlter6Time.stop();
 
-                                totcap=0;
+                                int totcap=0;
                                 for(int j=1;j<=mySystem.nbStage-1;j++){
                                     totcap = totcap+ mySystem.buffer[j];
                                 }
@@ -171,7 +177,6 @@ public class Main_DOE {
 
                                 //close single instance file
                                 try {
-                                    outRes5.close();
                                     outRes6.close();
                                 } catch (IOException e) {
                                     e.printStackTrace();

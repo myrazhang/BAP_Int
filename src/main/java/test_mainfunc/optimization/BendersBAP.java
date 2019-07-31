@@ -19,8 +19,8 @@ public abstract class BendersBAP {
     int lowerBoundj[];
     int simulationLength;
     int warmupLength;
-    final int MAX_ITE=10000;
-    final double MAX_CPLEX_TIME=86400;
+    final int MAX_ITE=20000;
+    final double MAX_CPLEX_TIME=18000;
     // End of input
 
     //Output
