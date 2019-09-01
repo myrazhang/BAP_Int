@@ -95,12 +95,11 @@ public class BendersIntModelAlter6 extends BendersIntModel {
         {
             for (int i=1;i<=this.simulationLength;i++)
             {
-                tijpar = tijpar + tij[i][j]*(double)this.mySystem.mySimulation.uij[i][j];
+                if(this.mySystem.mySimulation.uij[i][j]>0)
+                    tijpar += tij[i][j]*(double)this.mySystem.mySimulation.uij[i][j];
             }
         }
         this.newCut.constantTerm= - this.theta/this.THstar + tijpar;
-
-
     }
 
     @Override
@@ -109,38 +108,67 @@ public class BendersIntModelAlter6 extends BendersIntModel {
             double constantTerm=this.newCut.constantTerm;
             IloLinearNumExpr feacut = cplex.linearNumExpr();
             IloRange rng;
+            double[][] mcoefficient=new double[mySystem.nbStage][];
+            for(int j=1;j<=this.mySystem.nbStage-1;j++) {
+                mcoefficient[j] = new double[this.upperBoundj[j] + 1];
+                for (int k = this.lowerBoundj[j] + 1; k <= this.upperBoundj[j]; k++)
+                    mcoefficient[j][k] = 0;
+            }
 
+            // Calculate the coefficient of each term in standard cuts
             for(int j=1;j<=this.mySystem.nbStage-1;j++){
-                double[] mcoefficient=new double[this.upperBoundj[j]+1];
-                for(int k=this.lowerBoundj[j]+1;k<=this.upperBoundj[j];k++)
-                    mcoefficient[k]=0;
-
                 for(int i=1;i<=this.simulationLength;i++){
                     if(this.mySystem.mySimulation.wij[i][j]>0){
-
                         for(int k=this.lowerBoundj[j]+1;k<=this.mySystem.buffer[j];k++){
-                            mcoefficient[k]+=this.mijk[i][j][k]*this.mySystem.mySimulation.wij[i][j];
+                            mcoefficient[j][k]+=this.mijk[i][j][k]*this.mySystem.mySimulation.wij[i][j];
                         }
 
                         for(int k=this.mySystem.buffer[j]+1;k<=this.upperBoundj[j];k++){
-                            mcoefficient[k]+=this.Mijk[i][j][k]*this.mySystem.mySimulation.wij[i][j];
+                            mcoefficient[j][k]+=this.Mijk[i][j][k]*this.mySystem.mySimulation.wij[i][j];
                         }
-
                     }
                 }
 
-                for(int k=this.lowerBoundj[j]+1;k<=this.upperBoundj[j];k++){
-                    feacut.addTerm(-mcoefficient[k],this.yjk[j][k]);
-                }
-
                 for(int k=this.lowerBoundj[j]+1;k<=this.mySystem.buffer[j];k++){
-                    constantTerm+=mcoefficient[k];
+                    constantTerm+=mcoefficient[j][k];
                 }
 
             }
-            feacut.setConstant(constantTerm);
-            rng = cplex.addLe(feacut,0);
-            rng.setName("feascut of iter: "+ (numit));
+
+            // Is combinatorial cut or standard cut tighter?
+            boolean combCutIsTighter=true;
+            for(int j=1;j<=this.mySystem.nbStage-1;j++){
+                double lhs=0;
+                for(int k=this.lowerBoundj[j]+1;k<=min(this.mySystem.buffer[j]+1,this.upperBoundj[j]);k++){
+                    lhs+=mcoefficient[j][k];
+                }
+                if(lhs<constantTerm)
+                    combCutIsTighter=false;
+            }
+
+            // Add the correct cut
+            if(combCutIsTighter){
+                for(int j=1;j<=this.mySystem.nbStage-1;j++){
+                    if(this.mySystem.buffer[j]<this.upperBoundj[j])
+                        feacut.addTerm(1,this.yjk[j][this.mySystem.buffer[j]+1]);
+                }
+                rng=cplex.addGe(feacut,1.0);
+                rng.setName("combcut of iter "+ (numit)+": ");
+            }
+            else{
+                for(int j=1;j<=this.mySystem.nbStage-1;j++){
+                    double cumulateMjk=0;
+                    for(int k=this.lowerBoundj[j]+1;k<=this.upperBoundj[j];k++){
+                        cumulateMjk+=mcoefficient[j][k];
+                        feacut.addTerm(-mcoefficient[j][k],this.yjk[j][k]);
+                        if(cumulateMjk > constantTerm)
+                            break;
+                    }
+                }
+                feacut.setConstant(constantTerm);
+                rng = cplex.addLe(feacut,0);
+                rng.setName("feascut of iter "+ (numit)+": ");
+            }
 
         }catch(Exception exc){exc.printStackTrace();}
 
@@ -207,9 +235,5 @@ public class BendersIntModelAlter6 extends BendersIntModel {
         this.writer.println(this.cplex.getModel());
         super.endMasterProb();
     }
-
-
-
-
 
 }

@@ -9,7 +9,6 @@ import test_mainfunc.util.Stopwatch;
 import java.io.*;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-
 import static java.lang.Math.exp;
 
 
@@ -19,7 +18,7 @@ public class Main_DOE {
         String programPath = System.getProperty("user.dir");
 
         //***   Input files   *********************************************************
-        String in_System = programPath + File.separator+"INPUT"+File.separator+"SerialLine_test_DoE.txt";
+        String in_System = programPath + File.separator+"INPUT"+File.separator+"SerialLine_test_DoE_46.txt";
         InputStream in_SystemFile = null;
         try {
             in_SystemFile = new FileInputStream(in_System);
@@ -30,7 +29,7 @@ public class Main_DOE {
 
 
         //***   Output summary file   *********************************************************
-        String out_resFileSummary = programPath +File.separator+"OUTPUT"+File.separator+"BAP_DOE_summary.txt";
+        String out_resFileSummary = programPath +File.separator+"OUTPUT"+File.separator+"BAP_DOE_summary_part3.txt";
 
         OutputStream outRessummary= null;
         try {
@@ -57,41 +56,42 @@ public class Main_DOE {
 
         int[] BNpositions=new int[4];
         int[] BNpositions4={0,1,2,3};
-        int[] BNpositions7={0,2,6,10};
+        int[] BNpositions6={0,2,5,8};
+        //int[] BNpositions7={0,2,6,10};
         //here the DoE starts
-        for(int Jfac=0; Jfac < myDOE.Jfactor.length; Jfac++){
-            if (myDOE.Jfactor[Jfac]==4){
-                BNpositions =BNpositions4;
-            }
-            else if (myDOE.Jfactor[Jfac]==7){
-                BNpositions = BNpositions7;
-            }
-            for(int etaFac=0; etaFac < myDOE.etaFactor.length;etaFac++){
-                for(int BNfac: BNpositions){
-                    for(int alfac=0; alfac< myDOE.alphafactor.length; alfac++){
-                        for(int noBNctfac=0; noBNctfac< myDOE.noBNfactor.length;noBNctfac++){
-                            for(int varfac=0; varfac< myDOE.varfactor.length;varfac++){
+        for(int r=3;r<=3;r++){
+            for(int Jfac=0; Jfac < myDOE.Jfactor.length; Jfac++){
+                if (myDOE.Jfactor[Jfac]==4){
+                    BNpositions =BNpositions4;
+                }
+                else if (myDOE.Jfactor[Jfac]==6){
+                    BNpositions = BNpositions6;
+                }
+                for(int etaFac=0; etaFac < myDOE.etaFactor.length;etaFac++){
+                    for(int BNfac: BNpositions){
+                        for(int alfac=0; alfac< myDOE.alphafactor.length; alfac++){
+                            for(int noBNctfac=0; noBNctfac< myDOE.noBNfactor.length;noBNctfac++){
+                                for(int varfac=0; varfac< myDOE.varfactor.length;varfac++){
 
-                                SerialLine mySystem=myDOE.getOneSystemConfiguration(Jfac, BNfac, alfac, noBNctfac, varfac);
-                                double meanBnCt=mySystem.CT[myDOE.BN1[BNfac]].getMean();
+                                    SerialLine mySystem=myDOE.getOneSystemConfiguration(Jfac, BNfac, alfac, noBNctfac, varfac);
+                                    double meanBnCt=mySystem.CT[myDOE.BN1[BNfac]].getMean();
 
-                                int[] lB=new int[mySystem.nbStage];
-                                int[] uB=new int[mySystem.nbStage];
-                                for(int j=0;j<=mySystem.nbStage-1;j++){
-                                    lB[j]=myDOE.Lj;
-                                    uB[j]=myDOE.Uj;
-                                }
+                                    int[] lB=new int[mySystem.nbStage];
+                                    int[] uB=new int[mySystem.nbStage];
+                                    for(int j=0;j<=mySystem.nbStage-1;j++){
+                                        lB[j]=myDOE.Lj;
+                                        uB[j]=myDOE.Uj;
+                                    }
 
-                                // sampling
-                                double[][] tij=new double[myDOE.Njobs+1][mySystem.nbStage+1];
-                                int seed =(int) System.currentTimeMillis();
-                                mySystem.procTimeGeneration(myDOE.Njobs,tij,seed);
+                                    // sampling
+                                    double[][] tij=new double[myDOE.Njobs+1][mySystem.nbStage+1];
+                                    int seed =(int) System.currentTimeMillis();
+                                    mySystem.procTimeGeneration(myDOE.Njobs,tij,seed);
 
-                                writersum.write( mySystem.nbStage + " "+myDOE.etaFactor[etaFac] +" "+myDOE.BN1[BNfac]+" " + myDOE.BN2[BNfac] +" "+myDOE.alphafactor[alfac]+" "+myDOE.noBNfactor[noBNctfac]+" ");
-
-                                // Start optimization with Alter 5
-                                /*myDOE.tempinstance = "J"+mySystem.nbStage+"_TH_"+myDOE.etaFactor[etaFac] +"_BN_"+myDOE.BN1[BNfac]+myDOE.BN2[BNfac]+"_alpha_"+myDOE.alphafactor[alfac]+"_BNf_"+myDOE.noBNfactor[noBNctfac];
-                                String out_resFile5 = programPath +File.separator+"OUTPUT"+File.separator+"Out_"+ myDOE.tempinstance + "_Alter5.txt";
+                                    writersum.write( mySystem.nbStage + " "+myDOE.etaFactor[etaFac] +" "+myDOE.BN1[BNfac]+" " + myDOE.BN2[BNfac] +" "+myDOE.alphafactor[alfac]+" "+myDOE.noBNfactor[noBNctfac]+" ");
+                                    myDOE.tempinstance = "J"+mySystem.nbStage+"_TH_"+myDOE.etaFactor[etaFac] +"_BN_"+myDOE.BN1[BNfac]+myDOE.BN2[BNfac]+"_alpha_"+myDOE.alphafactor[alfac]+"_BNf_"+myDOE.noBNfactor[noBNctfac];
+                                    // Start optimization with Alter 5
+                                /*String out_resFile5 = programPath +File.separator+"OUTPUT"+File.separator+"Out_"+ myDOE.tempinstance + "_Alter5.txt";
                                 OutputStream outRes5= null;
                                 try {
                                     outRes5 = new FileOutputStream(out_resFile5);
@@ -125,68 +125,70 @@ public class Main_DOE {
                                 // End Optimization with Alter5*/
 
 
-                                // Start optimization with Alter 6
-                                String out_resFile6 = programPath +File.separator+"OUTPUT"+File.separator+"Out_"+ myDOE.tempinstance + "_Alter6.txt";
-                                OutputStream outRes6= null;
-                                try {
-                                    outRes6 = new FileOutputStream(out_resFile6);
-                                } catch (FileNotFoundException e) {
-                                    e.printStackTrace();
-                                    System.exit(-1);
-                                }
-                                BendersIntModelAlter6 myAlter6=new BendersIntModelAlter6(mySystem, myDOE.etaFactor[etaFac]/meanBnCt, lB, uB, myDOE.Njobs, myDOE.W);
-                                myAlter6.writer = new PrintWriter(outRes6, true);
+                                    // Start optimization with Alter 6
+                                    String out_resFile6 = programPath +File.separator+"OUTPUT"+File.separator+"Out_"+ myDOE.tempinstance + "_Alter6_"+(r)+".txt";
+                                    OutputStream outRes6= null;
+                                    try {
+                                        outRes6 = new FileOutputStream(out_resFile6);
+                                    } catch (FileNotFoundException e) {
+                                        e.printStackTrace();
+                                        System.exit(-1);
+                                    }
+                                    BendersIntModelAlter6 myAlter6=new BendersIntModelAlter6(mySystem, myDOE.etaFactor[etaFac]/meanBnCt, lB, uB, myDOE.Njobs, myDOE.W);
+                                    myAlter6.writer = new PrintWriter(outRes6, true);
 
 
-                                Stopwatch totalAlter6Time=new Stopwatch();
-                                totalAlter6Time.start();
-                                try{
-                                    myAlter6.solveBAPWithIntModel(tij);
-                                }catch(Exception exc){exc.printStackTrace();}
+                                    Stopwatch totalAlter6Time=new Stopwatch();
+                                    totalAlter6Time.start();
+                                    try{
+                                        myAlter6.solveBAPWithIntModel(tij);
+                                    }catch(Exception exc){exc.printStackTrace();}
 
-                                totalAlter6Time.stop();
+                                    totalAlter6Time.stop();
 
-                                int totcap=0;
-                                for(int j=1;j<=mySystem.nbStage-1;j++){
-                                    totcap = totcap+ mySystem.buffer[j];
-                                }
-                                writersum.write(myAlter6.numit + " " + df.format(totalAlter6Time.elapseTimeSeconds)+ " " +df.format(myAlter6.cplexTimeMeasure.elapseTimeSeconds)+ " "+totcap+" ");
-                                // End Optimization with Alter6
+                                    int totcap=0;
+                                    for(int j=1;j<=mySystem.nbStage-1;j++){
+                                        totcap = totcap+ mySystem.buffer[j];
+                                    }
+                                    writersum.write(myAlter6.numit + " " + df.format(totalAlter6Time.elapseTimeSeconds)+ " " +df.format(myAlter6.cplexTimeMeasure.elapseTimeSeconds)+ " "+totcap+" ");
+                                    // End Optimization with Alter6
 
 
 
-                                // Start optimization with stolletz
-                                BendersStolletz myStolletz=new BendersStolletz(mySystem, myDOE.etaFactor[etaFac]/meanBnCt, lB, uB, myDOE.Njobs, myDOE.W);
+                                    // Start optimization with stolletz
+                                    BendersStolletz myStolletz=new BendersStolletz(mySystem, myDOE.etaFactor[etaFac]/meanBnCt, lB, uB, myDOE.Njobs, myDOE.W);
 
-                                Stopwatch totalStolletzTime=new Stopwatch();
-                                totalStolletzTime.start();
-                                try{
-                                    myStolletz.solveBAPWithStolletz(tij);
-                                }catch(Exception exc){exc.printStackTrace();}
+                                    Stopwatch totalStolletzTime=new Stopwatch();
+                                    totalStolletzTime.start();
+                                    try{
+                                        myStolletz.solveBAPWithStolletz(tij);
+                                    }catch(Exception exc){exc.printStackTrace();}
 
-                                totalStolletzTime.stop();
+                                    totalStolletzTime.stop();
 
-                                totcap=0;
-                                for(int j=1;j<=mySystem.nbStage-1;j++){
-                                    totcap = totcap+ mySystem.buffer[j];
-                                }
+                                    totcap=0;
+                                    for(int j=1;j<=mySystem.nbStage-1;j++){
+                                        totcap = totcap+ mySystem.buffer[j];
+                                    }
 
-                                writersum.write(myStolletz.numit + " " + df.format(totalStolletzTime.elapseTimeSeconds)+ " " +df.format(myStolletz.cplexTimeMeasure.elapseTimeSeconds)+ " " + totcap);
-                                writersum.println();
-                                //End of optimization with Stolletz
+                                    writersum.write(myStolletz.numit + " " + df.format(totalStolletzTime.elapseTimeSeconds)+ " " +df.format(myStolletz.cplexTimeMeasure.elapseTimeSeconds)+ " " + totcap);
+                                    writersum.println();
+                                    //End of optimization with Stolletz
 
-                                //close single instance file
-                                try {
-                                    outRes6.close();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
+                                    //close single instance file
+                                    try {
+                                        outRes6.close();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
-                        }
-                    }//end Mfac
-                }//end BNfac
-            }//end THfac
-        }//end jfac
+                        }//end Mfac
+                    }//end BNfac
+                }//end THfac
+            }//end jfac
+        }
+
 
         try {
             outRessummary.close();
