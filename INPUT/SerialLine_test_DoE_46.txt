@@ -1,0 +1,15 @@
+Jobs: 100000
+Warmup: 1
+Lj: 1
+Uj: 20
+NbStage_factors: 2 4 6
+Eta: 2 0.64 0.68
+Distribution: LogNorm
+BN_CT_m: 2
+noBN_CT_m: 1 1.5
+sigma: 3 0.85 0.9 1
+%beta: 1 0
+%variance: 1 0
+Num_BNpositions: 9
+BN1_position: 1 1 1 2 1 1 2 2 3
+BN2_position: 2 3 4 3 5 6 4 5 4
