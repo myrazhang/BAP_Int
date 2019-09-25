@@ -54,9 +54,10 @@ public class Main_DOE {
                 "Stolletz_numit Stolletz_TotalTime Stolletz_CplexTime Stolletz_totalBuffer");
         writersum.println();
 
-        int[] BNpositions=new int[4];
+        int[] BNpositions=new int[3];
         int[] BNpositions4={0,1,2,3};
         int[] BNpositions6={0,2,5,8};
+        int[] BNpositions2={0,1,2};
         //int[] BNpositions7={0,2,6,10};
         //here the DoE starts
         for(int r=3;r<=3;r++){
@@ -66,6 +67,9 @@ public class Main_DOE {
                 }
                 else if (myDOE.Jfactor[Jfac]==6){
                     BNpositions = BNpositions6;
+                }
+                else if (myDOE.Jfactor[Jfac]==2){
+                    BNpositions = BNpositions2;
                 }
                 for(int etaFac=0; etaFac < myDOE.etaFactor.length;etaFac++){
                     for(int BNfac: BNpositions){

@@ -47,7 +47,7 @@ public class Main_SimDOE {
         writersum.println( "nbStage BN1 BN2 Sigma maxCT min_eta minCT max_eta");
 
 
-        int[] BNpositions=new int[4];
+        int[] BNpositions=new int[3];
         int[] BNpositions4={0,1,2,3};
         int[] BNpositions6={0,2,5,8};
         int[] BNpositions2={0,1,2};
@@ -56,7 +56,7 @@ public class Main_SimDOE {
             if (myDOE.Jfactor[Jfac]==2){
                 BNpositions =BNpositions2;
             }
-            if (myDOE.Jfactor[Jfac]==4){
+            else if (myDOE.Jfactor[Jfac]==4){
                 BNpositions =BNpositions4;
             }
             else if (myDOE.Jfactor[Jfac]==6){
