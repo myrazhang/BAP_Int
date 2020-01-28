@@ -11,7 +11,7 @@ import static java.lang.Math.min;
 
 public class BendersIntModelAlter6 extends BendersIntModel {
 
-    private IloNumVar[][] yjk;
+    protected IloNumVar[][] yjk;
 
     public BendersIntModelAlter6(SerialLine system, double THstar, int[] lB, int[] uB, int N, int W){
         super(system, THstar,  lB, uB, N,  W);
@@ -132,7 +132,6 @@ public class BendersIntModelAlter6 extends BendersIntModel {
                 for(int k=this.lowerBoundj[j]+1;k<=this.mySystem.buffer[j];k++){
                     constantTerm+=mcoefficient[j][k];
                 }
-
             }
 
             // Is combinatorial cut or standard cut tighter?
