@@ -19,7 +19,7 @@ public class Main_DOE {
         String programPath = System.getProperty("user.dir");
 
         //***   Input files   *********************************************************
-        String in_System = programPath + File.separator+"INPUT"+File.separator+"SerialLine_test_DoE_46.txt";
+        String in_System = programPath + File.separator+"INPUT"+File.separator+"SerialLine_test_DoE.txt";
         InputStream in_SystemFile = null;
         try {
             in_SystemFile = new FileInputStream(in_System);
@@ -30,7 +30,7 @@ public class Main_DOE {
 
 
         //***   Output summary file   *********************************************************
-        String out_resFileSummary = programPath +File.separator+"OUTPUT"+File.separator+"BAP_DOE_summary_part3.txt";
+        String out_resFileSummary = programPath +File.separator+"OUTPUT"+File.separator+"BAP_DOE_summary.txt";
 
         OutputStream outRessummary= null;
         try {
@@ -56,13 +56,13 @@ public class Main_DOE {
                 "Stolletz_numit Stolletz_TotalTime Stolletz_CplexTime Stolletz_totalBuffer");
         writersum.println();
 
-        int[] BNpositions=new int[3];
+        int[] BNpositions=null;
         int[] BNpositions4={0,1,2,3};
         int[] BNpositions6={0,2,5,8};
         int[] BNpositions2={0,1,2};
         //int[] BNpositions7={0,2,6,10};
         //here the DoE starts
-        for(int r=3;r<=3;r++){
+        for(int r=1;r<=5;r++){
             for(int Jfac=0; Jfac < myDOE.Jfactor.length; Jfac++){
                 if (myDOE.Jfactor[Jfac]==4){
                     BNpositions =BNpositions4;
