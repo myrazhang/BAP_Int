@@ -19,7 +19,7 @@ public class Main_DOE {
         String programPath = System.getProperty("user.dir");
 
         //***   Input files   *********************************************************
-        String in_System = programPath + File.separator+"INPUT"+File.separator+"SerialLine_test_DoE.txt";
+        String in_System = programPath + File.separator+"INPUT"+File.separator+"SerialLine_test_DoE_46.txt";
         InputStream in_SystemFile = null;
         try {
             in_SystemFile = new FileInputStream(in_System);
