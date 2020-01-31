@@ -2,6 +2,7 @@ package test_mainfunc;
 
 import test_mainfunc.optimization.BendersIntModelAlter5;
 import test_mainfunc.optimization.BendersIntModelAlter6;
+import test_mainfunc.optimization.BendersIntModelAlter6ReversedCut;
 import test_mainfunc.optimization.BendersStolletz;
 import test_mainfunc.simulation.SerialLine;
 import test_mainfunc.util.Stopwatch;
@@ -51,6 +52,7 @@ public class Main_DOE {
         writersum.write( "nbStage BNEfficiency BN1 BN2 Sigma noBN_CT " +
                 //"Alter5_numit Alter5_TotalTime Alter5_CplexTime Alter5_totalBuffer " +
                 "Alter6_numit Alter6_TotalTime Alter6_CplexTime Alter6_totalBuffer " +
+                "Alter6Rev_numit Alter6Rev_TotalTime Alter6Rev_CplexTime Alter6Rev_totalBuffer " +
                 "Stolletz_numit Stolletz_TotalTime Stolletz_CplexTime Stolletz_totalBuffer");
         writersum.println();
 
@@ -157,6 +159,32 @@ public class Main_DOE {
                                     writersum.write(myAlter6.numit + " " + df.format(totalAlter6Time.elapseTimeSeconds)+ " " +df.format(myAlter6.cplexTimeMeasure.elapseTimeSeconds)+ " "+totcap+" ");
                                     // End Optimization with Alter6
 
+                                    // Start optimization with Alter 6 reversed cut
+                                    String out_resFile6Reversed = programPath +File.separator+"OUTPUT"+File.separator+"Out_"+ myDOE.tempinstance + "_Alter6RevCut_"+(r)+".txt";
+                                    OutputStream outRes6RevCut= null;
+                                    try {
+                                        outRes6RevCut = new FileOutputStream(out_resFile6Reversed);
+                                    } catch (FileNotFoundException e) {
+                                        e.printStackTrace();
+                                        System.exit(-1);
+                                    }
+                                    BendersIntModelAlter6ReversedCut myReversedAlter6=new BendersIntModelAlter6ReversedCut(mySystem, myDOE.etaFactor[etaFac]/meanBnCt, lB, uB, myDOE.Njobs, myDOE.W);
+                                    myReversedAlter6.writer = new PrintWriter(outRes6RevCut, true);
+
+                                    Stopwatch totalAlter6RevTime=new Stopwatch();
+                                    totalAlter6RevTime.start();
+                                    try{
+                                        myReversedAlter6.solveBAPWithIntModel(tij);
+                                    }catch(Exception exc){exc.printStackTrace();}
+
+                                    totalAlter6RevTime.stop();
+
+                                    totcap=0;
+                                    for(int j=1;j<=mySystem.nbStage-1;j++){
+                                        totcap = totcap+ mySystem.buffer[j];
+                                    }
+                                    writersum.write(myReversedAlter6.numit + " " + df.format(totalAlter6RevTime.elapseTimeSeconds)+ " " +df.format(myReversedAlter6.cplexTimeMeasure.elapseTimeSeconds)+ " "+totcap+" ");
+                                    // End Optimization with Alter6 reversed cut
 
 
                                     // Start optimization with stolletz
