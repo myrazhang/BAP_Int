@@ -15,11 +15,11 @@ import static java.lang.Math.exp;
 
 public class Main_DOE {
 
-    public static void main(String argv[]) {
+    public static void main(String argv[]) throws Exception {
         String programPath = System.getProperty("user.dir");
 
         //***   Input files   *********************************************************
-        String in_System = programPath + File.separator+"INPUT"+File.separator+"SerialLine_test_DoE_46.txt";
+        String in_System = programPath + File.separator+"INPUT"+File.separator+"SerialLine_test_DoE_46.yaml";
         InputStream in_SystemFile = null;
         try {
             in_SystemFile = new FileInputStream(in_System);

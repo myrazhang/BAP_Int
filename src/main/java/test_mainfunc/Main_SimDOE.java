@@ -10,7 +10,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
 public class Main_SimDOE {
-    public static void main(String argv[]) {
+    public static void main(String argv[]) throws Exception {
         String programPath = System.getProperty("user.dir");
 
         //***   Input files   *********************************************************
