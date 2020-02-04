@@ -72,7 +72,9 @@ public class StochNum {
 
     }
 
-
+    double getOneSample(){
+        return 0;
+    }
 
 
     private class Normal{
@@ -94,6 +96,12 @@ public class StochNum {
 
         double getMean(){
             return para1;
+        }
+
+        double getOneSample(){
+            RandomGenerator generator = RandomGeneratorFactory.createRandomGenerator(new Random());
+            NormalDistribution normalSample = new NormalDistribution(generator, para1, para1 * para2);
+            return normalSample.sample();
         }
     }
 
