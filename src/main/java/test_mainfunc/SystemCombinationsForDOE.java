@@ -27,6 +27,11 @@ public class SystemCombinationsForDOE {
     String tempinstance;
     private String distr;
     double BNct;
+    int difffailedstage;
+    double[] diffuprateFactor;
+    double[] diffdownrateFactor;
+    double[] iiduprateFactor;
+    double[] iiddownrateFactor;
     private double[] betafactor;
 
     SystemCombinationsForDOE(InputStream system) throws IOException {
@@ -48,6 +53,11 @@ public class SystemCombinationsForDOE {
                 .mapToInt(Integer::valueOf).toArray();
         this.BN2 = Arrays.stream(input.BN2_position.split(" "))
                 .mapToInt(Integer::valueOf).toArray();
+        this.difffailedstage = input.differentfailedmachine;
+        this.diffuprateFactor = input.different_uptime_rate;
+        this.diffdownrateFactor = input.different_downtime_rate;
+        this.iiduprateFactor = input.iid_uptime_rate;
+        this.iiddownrateFactor = input.iid_downtime_rate;
     }
     SerialLine getOneSystemConfiguration(int Jindex, int BNindex, int alphaindex, int noBNctindex, int varindex){
 
@@ -67,6 +77,9 @@ public class SystemCombinationsForDOE {
             else if(theSystem.CT[j].distribution.equals("Exp")){
                 theSystem.CT[j].para1 = this.alphafactor[alphaindex];
             }//end if exponential
+            else if(theSystem.CT[j].distribution.equals("Deterministic")){
+                theSystem.CT[j].para1 = this.alphafactor[alphaindex];
+            }//end if Deterministic
             else if(theSystem.CT[j].distribution.equals("LogNorm")){
                 if(j==this.BN1[BNindex] || j == this.BN2[BNindex]){
                     theSystem.CT[j].para1 = this.BNct;

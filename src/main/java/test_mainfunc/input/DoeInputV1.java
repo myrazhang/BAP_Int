@@ -17,4 +17,9 @@ public class DoeInputV1 {
     public double[] variance;
     public String BN1_position;
     public String BN2_position;
+    public int differentfailedmachine;
+    public  double[] different_uptime_rate;
+    public double[] different_downtime_rate;
+    public  double[] iid_uptime_rate;
+    public double[] iid_downtime_rate;
 }
