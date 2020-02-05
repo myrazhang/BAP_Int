@@ -1,8 +1,8 @@
-package test_mainfunc;
+package test_mainfunc.input;
 
 import java.util.List;
 
-public class Input {
+public class DoeInputV1 {
     public int Jobs;
     public int Warmup;
     public int Lj;

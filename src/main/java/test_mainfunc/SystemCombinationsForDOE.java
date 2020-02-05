@@ -2,14 +2,13 @@ package test_mainfunc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import test_mainfunc.input.DoeInputV1;
 import test_mainfunc.simulation.SerialLine;
 import test_mainfunc.simulation.StochNum;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Scanner;
-import java.util.stream.StreamSupport;
 
 import static java.lang.Math.sqrt;
 
@@ -32,7 +31,7 @@ public class SystemCombinationsForDOE {
 
     SystemCombinationsForDOE(InputStream system) throws IOException {
         ObjectMapper mapper = new YAMLMapper();
-        Input input = mapper.readValue(system, Input.class);
+        DoeInputV1 input = mapper.readValue(system, DoeInputV1.class);
         this.Njobs=input.Jobs;
         this.W = input.Warmup;
         this.Lj = input.Lj;

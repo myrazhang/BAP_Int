@@ -90,8 +90,7 @@ public abstract class BendersBAP {
         try{
             double timeLimit=MAX_CPLEX_TIME-cplexTimeMeasure.elapseTimeSeconds;
             cplex.setParam(IloCplex.DoubleParam.TiLim,timeLimit);
-
-
+            cplex.setParam(IloCplex.Param.Threads, 16);
 
             this.cplexTimeMeasure.restart();
             this.solvability=this.cplex.solve();

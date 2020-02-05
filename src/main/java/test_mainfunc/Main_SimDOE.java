@@ -14,7 +14,7 @@ public class Main_SimDOE {
         String programPath = System.getProperty("user.dir");
 
         //***   Input files   *********************************************************
-        String in_System = programPath + File.separator+"INPUT"+File.separator+"SerialLine_test_DoE_46.txt";
+        String in_System = programPath + File.separator+"INPUT"+File.separator+"SerialLine_test_DoE_57.yaml";
         InputStream in_SystemFile = null;
         try {
             in_SystemFile = new FileInputStream(in_System);
@@ -44,24 +44,21 @@ public class Main_SimDOE {
         SystemCombinationsForDOE myDOE=new SystemCombinationsForDOE(in_SystemFile);
         PrintWriter writersum = new PrintWriter(outRessummary, true);
 
-        writersum.println( "nbStage BN1 BN2 Sigma maxCT min_eta minCT max_eta");
+        writersum.println( "nbStage BN1 BN2 Sigma maxCT min_eta minCT max_eta bestCT best_eta");
 
 
-        int[] BNpositions=new int[3];
-        int[] BNpositions4={0,1,2,3};
-        int[] BNpositions6={0,2,5,8};
-        int[] BNpositions2={0,1,2};
+        int[] BNpositions=null;
+        int[] BNpositions4={0,1,2,3,4,5};
+        int[] BNpositions6={6,7,8,9,10,11};
         //here the DoE starts
         for(int Jfac=0; Jfac < myDOE.Jfactor.length; Jfac++){
-            if (myDOE.Jfactor[Jfac]==2){
-                BNpositions =BNpositions2;
-            }
-            else if (myDOE.Jfactor[Jfac]==4){
+            if (myDOE.Jfactor[Jfac]==4){
                 BNpositions =BNpositions4;
             }
             else if (myDOE.Jfactor[Jfac]==6){
-                BNpositions = BNpositions6;
+                BNpositions =BNpositions6;
             }
+
             for(int etaFac=0; etaFac < myDOE.etaFactor.length;etaFac++){
                 for(int BNfac: BNpositions){
                     for(int alfac=0; alfac< myDOE.alphafactor.length; alfac++){
@@ -95,6 +92,13 @@ public class Main_SimDOE {
                                 //simulation with UB of buffer
                                 for(int j=1;j<=mySystem.nbStage-1;j++){
                                     mySystem.buffer[j]=uB[j];
+                                }
+                                mySystem.mySimulation.simBAS(false);
+                                writersum.print(mySystem.OverallCT+" "+meanBnCt/mySystem.OverallCT+" ");
+
+                                //simulation with infinite of buffer
+                                for(int j=1;j<=mySystem.nbStage-1;j++){
+                                    mySystem.buffer[j]=200;
                                 }
                                 mySystem.mySimulation.simBAS(false);
                                 writersum.println(mySystem.OverallCT+" "+meanBnCt/mySystem.OverallCT);

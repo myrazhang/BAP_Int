@@ -57,10 +57,10 @@ public class Main_DOE {
         writersum.println();
 
         int[] BNpositions=null;
-        int[] BNpositions4={0,1,2,3};
-        int[] BNpositions6={0,2,5,8};
+        int[] BNpositions4={0,1,2,3,4,5};
+        int[] BNpositions6={6,7,8,9,10,11};
         int[] BNpositions2={0,1,2};
-        //int[] BNpositions7={0,2,6,10};
+
         //here the DoE starts
         for(int r=1;r<=5;r++){
             for(int Jfac=0; Jfac < myDOE.Jfactor.length; Jfac++){
