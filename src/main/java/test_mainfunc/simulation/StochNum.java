@@ -41,6 +41,9 @@ public class StochNum {
                 LogNormal logNormSample=new LogNormal();
                 logNormSample.iidGeneration(sampleSize, generatedSamples, seed);
                 break;
+            case "Deterministic":
+                Deterministic deterministicSample= new Deterministic();
+                deterministicSample.iidGeneration(sampleSize, generatedSamples, seed);
             default:
                 throw new UnsupportedOperationException("Distribution is not supported!");
 
@@ -65,6 +68,9 @@ public class StochNum {
             case "LogNorm":
                 LogNormal logNormSample=new LogNormal();
                 return logNormSample.getMean();
+            case "Deterministic":
+                Deterministic deterministicSample=new Deterministic();
+                return  deterministicSample.getMean();
 
             default:
                 throw new UnsupportedOperationException("Distribution is not supported!");
@@ -72,10 +78,17 @@ public class StochNum {
 
     }
 
-    double getOneSample(){
-        return 0;
-    }
+    double getOneSample(double rate, int seed){
 
+            RandomGenerator generator = RandomGeneratorFactory.createRandomGenerator(new Random());
+            generator.setSeed(seed);
+
+            double p;
+            ExponentialDistribution expSample= new ExponentialDistribution(generator,rate);
+            double generatedSamples;
+            generatedSamples = expSample.sample();
+            return generatedSamples;
+    }
 
     private class Normal{
         void iidGeneration(int sampleSize, double[] generatedSamples, int seed){
@@ -114,6 +127,17 @@ public class StochNum {
             ExponentialDistribution expSample= new ExponentialDistribution(generator,para1);
             for (int i = 0; i <= sampleSize; i++)
                 generatedSamples[i] =expSample.sample();
+        }
+
+        double getMean(){
+            return para1;
+        }
+    }
+
+    private class Deterministic{
+        void iidGeneration(int sampleSize, double[] generatedSamples, int seed){
+            for (int i = 0; i <= sampleSize; i++)
+                generatedSamples[i] = para1;
         }
 
         double getMean(){

@@ -9,6 +9,7 @@ public class SerialLine {
     public StochNum[] CT;
     public SimulationBAS mySimulation;
 
+
     //Sim_Output
     public double OverallCT;
     public double TH;
