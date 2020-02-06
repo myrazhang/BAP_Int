@@ -79,7 +79,7 @@ public class SystemCombinationsForDOE {
                 theSystem.CT[j].para1 = this.alphafactor[alphaindex];
             }//end if exponential
             else if(theSystem.CT[j].distribution.equals("Deterministic")){
-                theSystem.CT[j].para1 = this.alphafactor[alphaindex];
+                theSystem.CT[j].para1 = 1/this.alphafactor[alphaindex];
             }//end if Deterministic
             else if(theSystem.CT[j].distribution.equals("LogNorm")){
                 if(j==this.BN1[BNindex] || j == this.BN2[BNindex]){

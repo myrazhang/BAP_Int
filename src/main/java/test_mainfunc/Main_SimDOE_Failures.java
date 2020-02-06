@@ -26,7 +26,7 @@ public class Main_SimDOE_Failures {
 
 
         //***   Output summary file   *********************************************************
-        String out_resFileSummary = programPath +File.separator+"OUTPUT"+File.separator+"BAP_DOE_sim.txt";
+        String out_resFileSummary = programPath +File.separator+"OUTPUT"+File.separator+"BAP_DOE_sim_Fail.txt";
 
         OutputStream outRessummary= null;
         try {
@@ -86,20 +86,23 @@ public class Main_SimDOE_Failures {
                                         mySystem.procTimeGeneration(myDOE.Njobs, tij, seed);
 
                                         //FAILURES: it is assumed that the factor diffuprateFactor and iiduprateFactor have same length, the same for the repair factor
-
-                                        double [] RepairVector = new double[myDOE.Njobs];
                                         double [] Machinept = new double[myDOE.Njobs];
-
-                                        for (int j =0; j < myDOE.Jfactor[Jfac]; j++)
+                                        Failure myFailure = new Failure();
+                                        for (int j =1; j < myDOE.Jfactor[Jfac]; j++)
                                         {
-                                            for(int row = 0; row < myDOE.Njobs; row++) {
-                                            Machinept[row] = tij[row][j];
-                                        }
-                                            Failure myFailure = new Failure();
-                                            myFailure.repairTimeGeneration(Machinept, RepairVector, myDOE.iiduprateFactor[ttffac],myDOE.iiddownrateFactor[ttrfac]);
-                                            myFailure.ProctimeUpdateWithRep(Machinept, RepairVector);
-                                            for(int row = 0; row < myDOE.Njobs; row++) {
-                                                tij[row][j] = Machinept[row];
+                                            for(int i = 1; i < myDOE.Njobs; i++) {
+                                                Machinept[i] = tij[i][j];
+                                            }
+                                            if ( j == myDOE.difffailedstage)
+                                            {
+                                                myFailure.repairTimeGeneration(Machinept, myDOE.diffuprateFactor[ttffac],myDOE.diffdownrateFactor[ttrfac]);
+                                            }
+                                            else
+                                            {
+                                                myFailure.repairTimeGeneration(Machinept, myDOE.iiduprateFactor[ttffac],myDOE.iiddownrateFactor[ttrfac]);
+                                            }
+                                            for(int i = 1; i < myDOE.Njobs; i++) {
+                                                tij[i][j] = tij[i][j] + myFailure.repairTimeSamples[i];
                                             }
                                         }
 

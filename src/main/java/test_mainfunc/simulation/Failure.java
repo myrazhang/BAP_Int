@@ -3,6 +3,7 @@ package test_mainfunc.simulation;
 public class Failure {
     public StochNum downTime;
     public StochNum upTime;
+    public double[] repairTimeSamples;
 
     // @Erica
     // todo: specify the parameters of uptime and downtime.
@@ -16,20 +17,19 @@ public class Failure {
 
     // This method generates ONLY repair time
     // Repair time can be zero, means no repair activity; or positive, means there failure occurence.
-    public void repairTimeGeneration(double[] processingTimeSamples, double[] repairTimeSamples, double upRate, double downRate){
+    public void repairTimeGeneration(double[] processingTimeSamples, double upRate, double downRate){
         int sampleSize = processingTimeSamples.length;
         repairTimeSamples = new double [sampleSize];
-        int seed =(int) System.currentTimeMillis();
 
-        double ttf = upTime.getOneSample(upRate, seed);
+        double ttf = upTime.getOneSample(upRate, 0);
         double P = 0;
 
         for (int i = 1; i< sampleSize;i++){
             P = P + processingTimeSamples[i];
             if (P > ttf) {
                 P = P - ttf;
-                repairTimeSamples[i] = downTime.getOneSample(downRate, seed);
-                ttf = upTime.getOneSample(upRate, seed);
+                repairTimeSamples[i] = downTime.getOneSample(downRate, 0);
+                ttf = upTime.getOneSample(upRate, 0);
             }
             else
                 repairTimeSamples[i] = 0;
@@ -39,12 +39,16 @@ public class Failure {
     public void ProctimeUpdateWithRep(double[] processingTimeSamples, double[] repairTimeSamples)
     {
         int sampleSize = processingTimeSamples.length;
+        System.out.println("samplesize: "+ sampleSize);
         if(sampleSize != repairTimeSamples.length)
             throw new UnsupportedOperationException("vectors of different length");
 
         for (int i = 1; i < sampleSize; i ++)
         {
-            processingTimeSamples[sampleSize] = processingTimeSamples[sampleSize] + repairTimeSamples[sampleSize];
+            processingTimeSamples[i] = processingTimeSamples[i] + repairTimeSamples[i];
+            if( i < 20 )
+                System.out.println("pt: " +processingTimeSamples[i]  );
+
         }
     }
 
