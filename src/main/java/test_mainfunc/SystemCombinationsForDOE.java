@@ -95,6 +95,50 @@ public class SystemCombinationsForDOE {
         return theSystem;
     }
 
+    SerialLine getOneSystemConfiguration(int stageNumber, String BNposition, int alphaindex, int noBNctindex, int varindex){
+        SerialLine theSystem=new SerialLine();
+        //save number of stages
+        theSystem.nbStage = stageNumber;
+        theSystem.buffer = new int[theSystem.nbStage];
+        //save distribution information
+        theSystem.CT = new StochNum[theSystem.nbStage+1];
+        int BN1=0;
+        int BN2=0;
+
+        if (BNposition.equals("MM")){
+            BN1 = theSystem.nbStage/2;
+            BN2 = BN1+1;
+        }
+        else if(BNposition.equals("ML")){
+            BN1 = theSystem.nbStage/2+1;
+            BN2 = theSystem.nbStage;
+        }
+
+        for (int j = 1; j <= theSystem.nbStage; j++)
+        {
+            theSystem.CT[j]=new StochNum();
+            theSystem.CT[j].distribution= this.distr;
+            if(theSystem.CT[j].distribution.equals("Exp")){
+                theSystem.CT[j].para1 = this.alphafactor[alphaindex];
+            }//end if exponential
+            else if(theSystem.CT[j].distribution.equals("Deterministic")){
+                theSystem.CT[j].para1 = this.alphafactor[alphaindex];
+            }//end if Deterministic
+            else if(theSystem.CT[j].distribution.equals("LogNorm")){
+                if(j==BN1 || j == BN2){
+                    theSystem.CT[j].para1 = this.BNct;
+                }//end if BN stage
+                else{
+                    theSystem.CT[j].para1 = this.noBNfactor[noBNctindex];
+                }//end else no BN stage
+                theSystem.CT[j].para2 = this.alphafactor[alphaindex];
+            }//end if LogNorm
+            else
+                throw new UnsupportedOperationException("Cycle time distribution is not supported!");
+        }
+        return theSystem;
+    }
+
     private void CalculateBetaPar(int j,int BNindex,int alphaindex, int noBNctindex,int varindex, SerialLine theSystem){
         double alpha = this.alphafactor[alphaindex] ;
         double beta = this.betafactor[alphaindex] ;

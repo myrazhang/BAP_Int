@@ -10,6 +10,9 @@ import test_mainfunc.util.Stopwatch;
 import java.io.*;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import static java.lang.Math.exp;
 
 
@@ -61,8 +64,13 @@ public class Main_DOE {
         int[] BNpositions6={6,7,8,9,10,11};
         int[] BNpositions2={0,1,2};
 
+        // 被中断的实验从中断的地方启动
+        int finishedExp=42;
+        int expId = 0;
+
+
         //here the DoE starts
-        for(int r=1;r<=5;r++){
+        for(int r=1;r<=2;r++){
             for(int Jfac=0; Jfac < myDOE.Jfactor.length; Jfac++){
                 if (myDOE.Jfactor[Jfac]==4){
                     BNpositions =BNpositions4;
@@ -78,6 +86,10 @@ public class Main_DOE {
                         for(int alfac=0; alfac< myDOE.alphafactor.length; alfac++){
                             for(int noBNctfac=0; noBNctfac< myDOE.noBNfactor.length;noBNctfac++){
                                 for(int varfac=0; varfac< myDOE.varfactor.length;varfac++){
+
+                                    expId++;
+                                    if(expId<=finishedExp)
+                                        break;
 
                                     SerialLine mySystem=myDOE.getOneSystemConfiguration(Jfac, BNfac, alfac, noBNctfac, varfac);
                                     double meanBnCt=mySystem.CT[myDOE.BN1[BNfac]].getMean();
@@ -188,24 +200,31 @@ public class Main_DOE {
 
 
                                     // Start optimization with stolletz
-                                    BendersStolletz myStolletz=new BendersStolletz(mySystem, myDOE.etaFactor[etaFac]/meanBnCt, lB, uB, myDOE.Njobs, myDOE.W);
+                                    if(totcap<=18 || mySystem.nbStage==4){
+                                        BendersStolletz myStolletz=new BendersStolletz(mySystem, myDOE.etaFactor[etaFac]/meanBnCt, lB, uB, myDOE.Njobs, myDOE.W);
 
-                                    Stopwatch totalStolletzTime=new Stopwatch();
-                                    totalStolletzTime.start();
-                                    try{
-                                        myStolletz.solveBAPWithStolletz(tij);
-                                    }catch(Exception exc){exc.printStackTrace();}
+                                        Stopwatch totalStolletzTime=new Stopwatch();
+                                        totalStolletzTime.start();
+                                        try{
+                                            myStolletz.solveBAPWithStolletz(tij);
+                                        }catch(Exception exc){exc.printStackTrace();}
 
-                                    totalStolletzTime.stop();
+                                        totalStolletzTime.stop();
 
-                                    totcap=0;
-                                    for(int j=1;j<=mySystem.nbStage-1;j++){
-                                        totcap = totcap+ mySystem.buffer[j];
+                                        totcap=0;
+                                        for(int j=1;j<=mySystem.nbStage-1;j++){
+                                            totcap = totcap+ mySystem.buffer[j];
+                                        }
+
+                                        writersum.write(myStolletz.numit + " " + df.format(totalStolletzTime.elapseTimeSeconds)+ " " +df.format(myStolletz.cplexTimeMeasure.elapseTimeSeconds)+ " " + totcap);
+                                        writersum.println();
                                     }
+                                    else{
+                                        writersum.println();
+                                    }
+                                //End of optimization with Stolletz
 
-                                    writersum.write(myStolletz.numit + " " + df.format(totalStolletzTime.elapseTimeSeconds)+ " " +df.format(myStolletz.cplexTimeMeasure.elapseTimeSeconds)+ " " + totcap);
-                                    writersum.println();
-                                    //End of optimization with Stolletz
+
 
                                     //close single instance file
                                     try {

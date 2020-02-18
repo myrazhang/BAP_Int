@@ -58,7 +58,7 @@
                 <archive>
                     <manifest>
                         <!--  这里写Main class的名字  -->
-                        <mainClass>test_mainfunc.Main_DOE</mainClass>
+                        <mainClass>test_mainfunc.MainExperiment1_2</mainClass>
                     </manifest>
                 </archive>
             </configuration>
