@@ -268,18 +268,18 @@ public class SerialLine {
                 this.Dij[i0][j0] = this.Sij[i0][j0] + this.tij[i0][j0];
                 this.buij[i0][j0] = 1;
             }
-            else if (i0 <= buffer[j0]) {
+            else if (i0 <= buffer[j0] + 1) {
                 this.Dij[i0][j0] = this.Sij[i0][j0] + this.tij[i0][j0];
                 this.buij[i0][j0] = 1;
             }
 
             else {
-                if (this.Sij[i0][j0] + this.tij[i0][j0] > this.Sij[i0 - buffer[j0]][j0 + 1]) {
+                if (this.Sij[i0][j0] + this.tij[i0][j0] > this.Dij[i0 - buffer[j0]-1][j0 + 1]) {
                     this.Dij[i0][j0] = this.Sij[i0][j0] + this.tij[i0][j0];
                     this.buij[i0][j0] = 1;
                 }
                 else{
-                    this.Dij[i0][j0] = this.Sij[i0 - buffer[j0]][j0 + 1];
+                    this.Dij[i0][j0] = this.Dij[i0 - buffer[j0]-1][j0 + 1];
                     bwij[i0][j0] = 1;
                 }
             }
@@ -287,32 +287,30 @@ public class SerialLine {
 
         private void departure_dual(int i0, int j0 ){
 
-            if (i0 < this.N && j0 < nbStage){
-                this.uij[i0][j0] = (this.vij[i0 + 1][j0] + this.sij[i0][j0 + 1])*this.buij[i0][j0];
-                this.wij[i0][j0] = (this.vij[i0 + 1][j0] + this.sij[i0][j0 + 1])*this.bwij[i0][j0];
+            int flowOut = 0;
+            if(i0 < this.N){
+                flowOut += this.vij[i0 + 1][j0];
             }
-            else if (i0 == this.N && j0 < nbStage) {
-                this.uij[i0][j0] = (this.sij[i0][j0 + 1])*this.buij[i0][j0];
-                this.wij[i0][j0] = (this.sij[i0][j0 + 1])*this.bwij[i0][j0];
+            if( j0 < nbStage){
+                flowOut += this.sij[i0][j0 + 1];
             }
-            else if (i0 < this.N && j0 == nbStage) {
-                this.uij[i0][j0] = (this.vij[i0 + 1][j0])*this.buij[i0][j0];
+            if(j0 >= 2 && i0 <= this.N-buffer[j0-1]-1){
+                flowOut += this.wij[i0+buffer[j0-1]+1][j0-1];
             }
-            else if (i0 == this.N && j0 == nbStage){
+
+            if (i0 == this.N && j0 == nbStage){
                 this.uij[i0][j0] = 1;
             }
+            else{
+                this.uij[i0][j0] = flowOut * this.buij[i0][j0];
+                this.wij[i0][j0] = flowOut * this.bwij[i0][j0];
+            }
+
         }
 
         private void start_dual(int i0,int j0){
-            if (j0 > 1 && i0 <= this.N - buffer[j0 - 1]) {
-                this.sij[i0][j0] = (this.uij[i0][j0] + this.wij[i0 + buffer[j0 - 1]][j0 - 1])*this.bsij[i0][j0];
-                this.vij[i0][j0] = (this.uij[i0][j0] + this.wij[i0 + buffer[j0 - 1]][j0 - 1])*this.bvij[i0][j0];
-            }
-            else  {
-                this.sij[i0][j0] = (this.uij[i0][j0])*this.bsij[i0][j0];
-                this.vij[i0][j0] = (this.uij[i0][j0])*this.bvij[i0][j0];
-            }
-
+            this.sij[i0][j0] = (this.uij[i0][j0])*this.bsij[i0][j0];
+            this.vij[i0][j0] = (this.uij[i0][j0])*this.bvij[i0][j0];
         }
 
     }

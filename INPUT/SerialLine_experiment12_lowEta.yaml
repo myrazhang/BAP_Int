@@ -1,6 +1,6 @@
 Jobs: 1000000
 Warmup: 1
-Lj: 1
+Lj: 0
 Uj: 20
 NbStage_factors:
   - 4

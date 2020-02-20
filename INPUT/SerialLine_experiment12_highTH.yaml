@@ -6,7 +6,7 @@ NbStage_factors:
   - 4
   - 100
 Eta:
-  - 0.72
+  - 0.8
 Distribution: LogNorm
 BN_CT_m: 2
 noBN_CT_m:

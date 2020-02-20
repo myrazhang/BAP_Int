@@ -33,7 +33,7 @@ public class BendersIntModelAlter6 extends BendersIntModel {
             for (int i = 0; i <= this.simulationLength; i++){
                 this.Mijk[i][j]=new double[this.upperBoundj[j]+1];
                 this.mijk[i][j]=new double[this.upperBoundj[j]+1];
-                for(int k = 1; k <= this.upperBoundj[j]; k++){
+                for(int k = 0; k <= this.upperBoundj[j]; k++){
                     this.mijk[i][j][k]=0;
                     this.Mijk[i][j][k]=100000;
                 }
@@ -218,7 +218,7 @@ public class BendersIntModelAlter6 extends BendersIntModel {
             }
             for (int j=1; j<=this.mySystem.nbStage-1; j++)
             {
-                for(int k=1;k<=this.lowerBoundj[j];k++){
+                for(int k=0;k<=this.lowerBoundj[j];k++){
                     IloLinearNumExpr yjk_expr = cplex.linearNumExpr();
                     yjk_expr.addTerm(1,yjk[j][k]);
                     yjk_expr.setConstant(-1);

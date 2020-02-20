@@ -113,6 +113,10 @@ public class SystemCombinationsForDOE {
             BN1 = theSystem.nbStage/2+1;
             BN2 = theSystem.nbStage;
         }
+        else if(BNposition.equals("FF")){
+            BN1 = 1;
+            BN2 = 2;
+        }
 
         for (int j = 1; j <= theSystem.nbStage; j++)
         {
