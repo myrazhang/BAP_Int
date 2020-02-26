@@ -26,7 +26,7 @@ public class Main_SimDOE_Failures {
 
 
         //***   Output summary file   *********************************************************
-        String out_resFileSummary = programPath +File.separator+"OUTPUT"+File.separator+"BAP_DOE_sim.txt";
+        String out_resFileSummary = programPath +File.separator+"OUTPUT"+File.separator+"BAP_DOE_sim_Fail.txt";
 
         OutputStream outRessummary= null;
         try {
@@ -45,7 +45,7 @@ public class Main_SimDOE_Failures {
         SystemCombinationsForDOE myDOE=new SystemCombinationsForDOE(in_SystemFile);
         PrintWriter writersum = new PrintWriter(outRessummary, true);
 
-        writersum.println( "nbStage BN1 BN2 Sigma maxCT min_eta minCT max_eta");
+        writersum.println( "DiffFailed diffUp Diffdown maxCT min_eta minCT max_eta");
 
 
         int[] BNpositions=new int[3];
@@ -69,56 +69,58 @@ public class Main_SimDOE_Failures {
                         for(int noBNctfac=0; noBNctfac< myDOE.noBNfactor.length;noBNctfac++){
                             for(int varfac=0; varfac< myDOE.varfactor.length;varfac++){
                                 for(int ttffac=0; ttffac < myDOE.diffuprateFactor.length; ttffac++) {
-                                    for (int ttrfac=0; ttrfac < myDOE.diffdownrateFactor.length; ttrfac++) {
-                                        SerialLine mySystem = myDOE.getOneSystemConfiguration(Jfac, BNfac, alfac, noBNctfac, varfac);
-                                        double meanBnCt = mySystem.CT[myDOE.BN1[BNfac]].getMean();
+                                    for (int ttrfac = 0; ttrfac < myDOE.diffdownrateFactor.length; ttrfac++) {
+                                        for (int fm = 0; fm < myDOE.difffailedstage.length; fm++) {
+                                            SerialLine mySystem = myDOE.getOneSystemConfiguration(Jfac, BNfac, alfac, noBNctfac, varfac);
 
-                                        int[] lB = new int[mySystem.nbStage];
-                                        int[] uB = new int[mySystem.nbStage];
-                                        for (int j = 0; j <= mySystem.nbStage - 1; j++) {
-                                            lB[j] = myDOE.Lj;
-                                            uB[j] = myDOE.Uj;
-                                        }
 
-                                        // sampling
-                                        double[][] tij = new double[myDOE.Njobs + 1][mySystem.nbStage + 1];
-                                        int seed = (int) System.currentTimeMillis();
-                                        mySystem.procTimeGeneration(myDOE.Njobs, tij, seed);
-
-                                        //FAILURES: it is assumed that the factor diffuprateFactor and iiduprateFactor have same length, the same for the repair factor
-
-                                        double [] RepairVector = new double[myDOE.Njobs];
-                                        double [] Machinept = new double[myDOE.Njobs];
-
-                                        for (int j =0; j < myDOE.Jfactor[Jfac]; j++)
-                                        {
-                                            for(int row = 0; row < myDOE.Njobs; row++) {
-                                            Machinept[row] = tij[row][j];
-                                        }
-                                            Failure myFailure = new Failure();
-                                            myFailure.repairTimeGeneration(Machinept, RepairVector, myDOE.iiduprateFactor[ttffac],myDOE.iiddownrateFactor[ttrfac]);
-                                            myFailure.ProctimeUpdateWithRep(Machinept, RepairVector);
-                                            for(int row = 0; row < myDOE.Njobs; row++) {
-                                                tij[row][j] = Machinept[row];
+                                            int[] lB = new int[mySystem.nbStage];
+                                            int[] uB = new int[mySystem.nbStage];
+                                            for (int j = 0; j <= mySystem.nbStage - 1; j++) {
+                                                lB[j] = myDOE.Lj;
+                                                uB[j] = myDOE.Uj;
                                             }
-                                        }
 
-                                        mySystem.mySimulation = mySystem.new SimulationBAS(myDOE.Njobs, myDOE.W, tij);
+                                            // sampling
+                                            double[][] tij = new double[myDOE.Njobs + 1][mySystem.nbStage + 1];
+                                            int seed = (int) System.currentTimeMillis();
+                                            mySystem.procTimeGeneration(myDOE.Njobs, tij, seed);
 
-                                        writersum.write(mySystem.nbStage + " " + myDOE.BN1[BNfac] + " " + myDOE.BN2[BNfac] + " " + myDOE.alphafactor[alfac] + " ");
-                                        //simulation with LB of buffer
-                                        for (int j = 1; j <= mySystem.nbStage - 1; j++) {
-                                            mySystem.buffer[j] = lB[j];
-                                        }
-                                        mySystem.mySimulation.simBAS(false);
-                                        writersum.write(mySystem.OverallCT + " " + meanBnCt / mySystem.OverallCT + " ");
+                                            //FAILURES: it is assumed that the factor diffuprateFactor and iiduprateFactor have same length, the same for the repair factor
+                                            double[] Machinept = new double[myDOE.Njobs];
+                                            Failure myFailure = new Failure();
+                                            for (int j = 1; j < myDOE.Jfactor[Jfac]; j++) {
+                                                for (int i = 1; i < myDOE.Njobs; i++) {
+                                                    Machinept[i] = tij[i][j];
+                                                }
+                                                if (j == myDOE.difffailedstage[fm]) {
+                                                    myFailure.repairTimeGeneration(Machinept, myDOE.diffuprateFactor[ttffac], myDOE.diffdownrateFactor[ttrfac]);
+                                                } else {
+                                                    myFailure.repairTimeGeneration(Machinept, myDOE.iiduprateFactor[ttffac], myDOE.iiddownrateFactor[ttrfac]);
+                                                }
+                                                for (int i = 1; i < myDOE.Njobs; i++) {
+                                                    tij[i][j] = tij[i][j] + myFailure.repairTimeSamples[i];
+                                                }
+                                            }
+                                            double Availabilitydiff = (1 / myDOE.diffuprateFactor[ttffac]) / ((1 / myDOE.diffuprateFactor[ttffac]) + (1 / myDOE.diffdownrateFactor[ttrfac]));
+                                            double meanBnCt = mySystem.CT[myDOE.difffailedstage[fm]].getMean() / Availabilitydiff;
+                                            mySystem.mySimulation = mySystem.new SimulationBAS(myDOE.Njobs, myDOE.W, tij);
 
-                                        //simulation with UB of buffer
-                                        for (int j = 1; j <= mySystem.nbStage - 1; j++) {
-                                            mySystem.buffer[j] = uB[j];
+                                            writersum.write(myDOE.difffailedstage[fm] + " " + myDOE.diffuprateFactor[ttffac] + " " + myDOE.diffdownrateFactor[ttrfac] + " ");
+                                            //simulation with LB of buffer
+                                            for (int j = 1; j <= mySystem.nbStage - 1; j++) {
+                                                mySystem.buffer[j] = lB[j];
+                                            }
+                                            mySystem.mySimulation.simBAS(false);
+                                            writersum.write(mySystem.OverallCT + " " + meanBnCt / mySystem.OverallCT + " ");
+
+                                            //simulation with UB of buffer
+                                            for (int j = 1; j <= mySystem.nbStage - 1; j++) {
+                                                mySystem.buffer[j] = uB[j];
+                                            }
+                                            mySystem.mySimulation.simBAS(false);
+                                            writersum.println(mySystem.OverallCT + " " + meanBnCt / mySystem.OverallCT);
                                         }
-                                        mySystem.mySimulation.simBAS(false);
-                                        writersum.println(mySystem.OverallCT + " " + meanBnCt / mySystem.OverallCT);
                                     }
                                 }
                             }

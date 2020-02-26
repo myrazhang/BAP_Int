@@ -44,6 +44,7 @@ public class StochNum {
             case "Deterministic":
                 Deterministic deterministicSample= new Deterministic();
                 deterministicSample.iidGeneration(sampleSize, generatedSamples, seed);
+                break;
             default:
                 throw new UnsupportedOperationException("Distribution is not supported!");
 
@@ -81,7 +82,7 @@ public class StochNum {
     double getOneSample(double rate, int seed){
 
             RandomGenerator generator = RandomGeneratorFactory.createRandomGenerator(new Random());
-            generator.setSeed(seed);
+          //  generator.setSeed(seed);
 
             double p;
             ExponentialDistribution expSample= new ExponentialDistribution(generator,rate);

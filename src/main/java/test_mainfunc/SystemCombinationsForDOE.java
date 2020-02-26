@@ -27,7 +27,7 @@ public class SystemCombinationsForDOE {
     String tempinstance;
     private String distr;
     double BNct;
-    int difffailedstage;
+    int[] difffailedstage;
     double[] diffuprateFactor;
     double[] diffdownrateFactor;
     double[] iiduprateFactor;
