@@ -22,7 +22,7 @@ public class Main_DOE {
         String programPath = System.getProperty("user.dir");
 
         //***   Input files   *********************************************************
-        String in_System = programPath + File.separator+"INPUT"+File.separator+"SerialLine_test_DoE_46.yaml";
+        String in_System = programPath + File.separator+"INPUT"+File.separator+"DoE_1BN_M6_Eta0.90.92_CV0.9.yaml";
         InputStream in_SystemFile = null;
         try {
             in_SystemFile = new FileInputStream(in_System);
@@ -33,7 +33,7 @@ public class Main_DOE {
 
 
         //***   Output summary file   *********************************************************
-        String out_resFileSummary = programPath +File.separator+"OUTPUT"+File.separator+"BAP_DOE_summary.txt";
+        String out_resFileSummary = programPath +File.separator+"OUTPUT"+File.separator+"DoE_1BN_M6_Eta0.90.92_CV0.9_summary.txt";
 
         OutputStream outRessummary= null;
         try {
@@ -60,36 +60,24 @@ public class Main_DOE {
         writersum.println();
 
         int[] BNpositions=null;
-        int[] BNpositions4={0,1,2,3,4,5};
-        int[] BNpositions6={6,7,8,9,10,11};
-        int[] BNpositions2={0,1,2};
-
-        // 被中断的实验从中断的地方启动
-        int finishedExp=42;
-        int expId = 0;
-
+        int[] BNpositions4={0,1,2,3};
+        int[] BNpositions6={0,2,3,5};
 
         //here the DoE starts
-        for(int r=1;r<=2;r++){
-            for(int Jfac=0; Jfac < myDOE.Jfactor.length; Jfac++){
-                if (myDOE.Jfactor[Jfac]==4){
-                    BNpositions =BNpositions4;
-                }
-                else if (myDOE.Jfactor[Jfac]==6){
-                    BNpositions = BNpositions6;
-                }
-                else if (myDOE.Jfactor[Jfac]==2){
-                    BNpositions = BNpositions2;
-                }
-                for(int etaFac=0; etaFac < myDOE.etaFactor.length;etaFac++){
-                    for(int BNfac: BNpositions){
-                        for(int alfac=0; alfac< myDOE.alphafactor.length; alfac++){
-                            for(int noBNctfac=0; noBNctfac< myDOE.noBNfactor.length;noBNctfac++){
-                                for(int varfac=0; varfac< myDOE.varfactor.length;varfac++){
 
-                                    expId++;
-                                    if(expId<=finishedExp)
-                                        break;
+        for(int Jfac=0; Jfac < myDOE.Jfactor.length; Jfac++){
+            if (myDOE.Jfactor[Jfac]==4){
+                BNpositions =BNpositions4;
+            }
+            else if (myDOE.Jfactor[Jfac]==6){
+                BNpositions = BNpositions6;
+            }
+            for(int etaFac=0; etaFac < myDOE.etaFactor.length;etaFac++){
+                for(int BNfac: BNpositions){
+                    for(int alfac=0; alfac< myDOE.alphafactor.length; alfac++){
+                        for(int noBNctfac=0; noBNctfac< myDOE.noBNfactor.length;noBNctfac++){
+                            for(int varfac=0; varfac< myDOE.varfactor.length;varfac++){
+                                for(int r=1;r<=5;r++){
 
                                     SerialLine mySystem=myDOE.getOneSystemConfiguration(Jfac, BNfac, alfac, noBNctfac, varfac);
                                     double meanBnCt=mySystem.CT[myDOE.BN1[BNfac]].getMean();
@@ -108,40 +96,6 @@ public class Main_DOE {
 
                                     writersum.write( mySystem.nbStage + " "+myDOE.etaFactor[etaFac] +" "+myDOE.BN1[BNfac]+" " + myDOE.BN2[BNfac] +" "+myDOE.alphafactor[alfac]+" "+myDOE.noBNfactor[noBNctfac]+" ");
                                     myDOE.tempinstance = "J"+mySystem.nbStage+"_TH_"+myDOE.etaFactor[etaFac] +"_BN_"+myDOE.BN1[BNfac]+myDOE.BN2[BNfac]+"_alpha_"+myDOE.alphafactor[alfac]+"_BNf_"+myDOE.noBNfactor[noBNctfac];
-                                    // Start optimization with Alter 5
-                                /*String out_resFile5 = programPath +File.separator+"OUTPUT"+File.separator+"Out_"+ myDOE.tempinstance + "_Alter5.txt";
-                                OutputStream outRes5= null;
-                                try {
-                                    outRes5 = new FileOutputStream(out_resFile5);
-                                } catch (FileNotFoundException e) {
-                                    e.printStackTrace();
-                                    System.exit(-1);
-                                }
-                                BendersIntModelAlter5 myAlter5=new BendersIntModelAlter5(mySystem, myDOE.etaFactor[etaFac]/meanBnCt, lB, uB, myDOE.Njobs, myDOE.W);
-                                myAlter5.writer = new PrintWriter(outRes5, true);
-
-
-                                Stopwatch totalAlter5Time=new Stopwatch();
-                                totalAlter5Time.start();
-                                try{
-                                    myAlter5.solveBAPWithIntModel(tij);
-                                }catch(Exception exc){exc.printStackTrace();}
-
-                                totalAlter5Time.stop();
-                                int totcap=0;
-                                for(int j=1;j<=mySystem.nbStage-1;j++){
-                                    totcap = totcap+ mySystem.buffer[j];
-                                }
-
-                                writersum.write( mySystem.nbStage + " "+myAlter5.THstar +" "+myDOE.BN1[BNfac]+" " + myDOE.BN2[BNfac] +" "+myDOE.alphafactor[alfac]+" "+myDOE.noBNfactor[noBNctfac]+" ");
-                                writersum.write(myAlter5.numit + " " + df.format(totalAlter5Time.elapseTimeSeconds)+ " " +df.format(myAlter5.cplexTimeMeasure.elapseTimeSeconds)+ " " + totcap+" ");
-                                try {
-                                    outRes5.close();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                                // End Optimization with Alter5*/
-
 
                                     // Start optimization with Alter 6
                                     String out_resFile6 = programPath +File.separator+"OUTPUT"+File.separator+"Out_"+ myDOE.tempinstance + "_Alter6_"+(r)+".txt";
@@ -252,25 +206,3 @@ public class Main_DOE {
 
 }
 
-////////////////////////////////////////////////////////////////////////
-////////CODE TO CHECK THE CORRECTNESS OF THE DESIGN OF EXPERIMENT///////
-////////////////////////////////////////////////////////////////////////
-/*
-writer.println("ist: "+numistances);
-        writer.println("Jfac THfac BNfac alfac noBNctfac varfac ARE: ");
-        writer.println(Jfac + " " + THfac + " " + BNfac + " " + alfac + " " + noBNctfac + " " + varfac);
-        writer.write("J: " + mySystem.NbStage + " and ");
-        writer.write("Buffer length: " + mySystem.Buffer.length+ " and ");
-        writer.write("TH star: " + mySystem.THstar+ " and ");
-        writer.println("tij factors are: ");
-        writer.write("alpha: "+ mySystem.alphafactor[alfac] + "and ");
-        writer.write("beta: "+ mySystem.betafactor[alfac] + "and ");
-        writer.println("var: "+ mySystem.varfactor[varfac] + "and ");
-        writer.println("BN positions are: " + mySystem.BN1[BNfac] + " and "+ mySystem.BN2[BNfac]);
-        writer.println("tij parameters are: ");
-        for (int j = 0; j < mySystem.NbStage; j++)
-        {
-        writer.println( "j: "+ j + ": " + mySystem.CT[j].distribution + " " + mySystem.CT[j].Para1 + " " +mySystem.CT[j].Para2 + " " +mySystem.CT[j].Para3 + " " +mySystem.CT[j].Para4);
-        }
-
-        writer.println("------------------");*/
