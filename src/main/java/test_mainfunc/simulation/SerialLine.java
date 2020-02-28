@@ -250,7 +250,7 @@ public class SerialLine {
                 this.bvij[i0][j0] = 1;
             }
             else{
-                if (this.Dij[i0 - 1][j0] > this.Dij[i0][j0 - 1]){
+                if (this.Dij[i0 - 1][j0] >= this.Dij[i0][j0 - 1]){
                     this.Sij[i0][j0] = this.Dij[i0 - 1][j0];
                     this.bvij[i0][j0] = 1;
                 }
@@ -274,7 +274,7 @@ public class SerialLine {
             }
 
             else {
-                if (this.Sij[i0][j0] + this.tij[i0][j0] > this.Dij[i0 - buffer[j0]-1][j0 + 1]) {
+                if (this.Sij[i0][j0] + this.tij[i0][j0] >= this.Dij[i0 - buffer[j0]-1][j0 + 1]) {
                     this.Dij[i0][j0] = this.Sij[i0][j0] + this.tij[i0][j0];
                     this.buij[i0][j0] = 1;
                 }

@@ -47,7 +47,7 @@ public class Main_BalancedLines {
         // System configuration
         int Njobs = 1000000, W = 1, lb = 1, ub = 20;
         double etaM4 = 0.66, meanCT = 1.5;
-        double[] etaM6 = {0.6, 0.62, 0.64, 0.66, 0.68};
+        double[] etaM6 = {0.4, 0.5};
 
         SerialLine myM4System = new SerialLine();
         myM4System.nbStage = 4;
