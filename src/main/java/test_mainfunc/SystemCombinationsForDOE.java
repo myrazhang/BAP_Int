@@ -2,13 +2,15 @@ package test_mainfunc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import test_mainfunc.input.DoeInputV1;
 import test_mainfunc.simulation.SerialLine;
 import test_mainfunc.simulation.StochNum;
+import test_mainfunc.input.DoeInputV1;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Scanner;
+import java.util.stream.StreamSupport;
 
 import static java.lang.Math.sqrt;
 
@@ -80,6 +82,10 @@ public class SystemCombinationsForDOE {
             else if(theSystem.CT[j].distribution.equals("Deterministic")){
                 theSystem.CT[j].para1 = this.alphafactor[alphaindex];
             }//end if Deterministic
+            else if(theSystem.CT[j].distribution.equals("Erlang")){
+                theSystem.CT[j].para1 = this.alphafactor[alphaindex];
+                theSystem.CT[j].para2 = this.betafactor[alphaindex];
+            }//end if Erlang
             else if(theSystem.CT[j].distribution.equals("LogNorm")){
                 if(j==this.BN1[BNindex] || j == this.BN2[BNindex]){
                     theSystem.CT[j].para1 = this.BNct;
@@ -95,50 +101,29 @@ public class SystemCombinationsForDOE {
         return theSystem;
     }
 
-    SerialLine getOneSystemConfiguration(int stageNumber, String BNposition, int alphaindex, int noBNctindex, int varindex){
+    SerialLine getStLongLineConfiguration(int Jindex){
+
         SerialLine theSystem=new SerialLine();
         //save number of stages
-        theSystem.nbStage = stageNumber;
+        theSystem.nbStage = this.Jfactor[Jindex];
         theSystem.buffer = new int[theSystem.nbStage];
         //save distribution information
         theSystem.CT = new StochNum[theSystem.nbStage+1];
-        int BN1=0;
-        int BN2=0;
-
-        if (BNposition.equals("MM")){
-            BN1 = theSystem.nbStage/2;
-            BN2 = BN1+1;
-        }
-        else if(BNposition.equals("ML")){
-            BN1 = theSystem.nbStage/2+1;
-            BN2 = theSystem.nbStage;
-        }
-        else if(BNposition.equals("FF")){
-            BN1 = 1;
-            BN2 = 2;
-        }
-
         for (int j = 1; j <= theSystem.nbStage; j++)
         {
             theSystem.CT[j]=new StochNum();
-            theSystem.CT[j].distribution= this.distr;
-            if(theSystem.CT[j].distribution.equals("Exp")){
-                theSystem.CT[j].para1 = this.alphafactor[alphaindex];
-            }//end if exponential
-            else if(theSystem.CT[j].distribution.equals("Deterministic")){
-                theSystem.CT[j].para1 = this.alphafactor[alphaindex];
-            }//end if Deterministic
-            else if(theSystem.CT[j].distribution.equals("LogNorm")){
-                if(j==BN1 || j == BN2){
-                    theSystem.CT[j].para1 = this.BNct;
-                }//end if BN stage
-                else{
-                    theSystem.CT[j].para1 = this.noBNfactor[noBNctindex];
-                }//end else no BN stage
-                theSystem.CT[j].para2 = this.alphafactor[alphaindex];
-            }//end if LogNorm
+            if(((j == 1) || (j == 3) || (j == 5) || (j == 7) || (j == 9) || (j == 11) || (j == 15) || (j == 17) || (j == 19) || (j==21) || (j==23)))
+            {
+                theSystem.CT[j].distribution= "Erlang";
+                theSystem.CT[j].para1 = this.alphafactor[0];
+                theSystem.CT[j].para2 = this.betafactor[0];
+                // System.out.println("para 1: " + theSystem.CT[j].para1 + " and para 2: "+ theSystem.CT[j].para2);
+            }
             else
-                throw new UnsupportedOperationException("Cycle time distribution is not supported!");
+            {
+                theSystem.CT[j].distribution= "Deterministic";
+                theSystem.CT[j].para1 = this.BNct;
+            }
         }
         return theSystem;
     }

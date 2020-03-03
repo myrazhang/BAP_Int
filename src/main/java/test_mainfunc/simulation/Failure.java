@@ -21,7 +21,13 @@ public class Failure {
         int sampleSize = processingTimeSamples.length;
         repairTimeSamples = new double [sampleSize];
 
+        //double tottf=0;
+        //double totre=0;
+        //int counttf=0;
+        //int countre=0;
         double ttf = upTime.getOneSample(upRate, 0);
+        //tottf += ttf;
+        //counttf += 1;
         double P = 0;
 
         for (int i = 1; i< sampleSize;i++){
@@ -30,10 +36,16 @@ public class Failure {
                 P = P - ttf;
                 repairTimeSamples[i] = downTime.getOneSample(downRate, 0);
                 ttf = upTime.getOneSample(upRate, 0);
+                //totre += repairTimeSamples[i];
+                //countre += 1;
+                //tottf += ttf;
+                //counttf += 1;
             }
             else
                 repairTimeSamples[i] = 0;
         }
+       // System.out.println("Meant ttf: " + tottf/counttf);
+       // System.out.println("Meant ttr: " + totre/countre);
     }
 
     public void ProctimeUpdateWithRep(double[] processingTimeSamples, double[] repairTimeSamples)

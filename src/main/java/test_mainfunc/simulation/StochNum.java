@@ -3,6 +3,7 @@ package test_mainfunc.simulation;
 import org.apache.commons.math3.distribution.BetaDistribution;
 import org.apache.commons.math3.distribution.ExponentialDistribution;
 import org.apache.commons.math3.random.RandomGeneratorFactory;
+import org.apache.commons.math3.distribution.GammaDistribution;
 
 import java.util.Date;
 import org.apache.commons.math3.distribution.NormalDistribution;
@@ -41,9 +42,15 @@ public class StochNum {
                 LogNormal logNormSample=new LogNormal();
                 logNormSample.iidGeneration(sampleSize, generatedSamples, seed);
                 break;
+
             case "Deterministic":
                 Deterministic deterministicSample= new Deterministic();
                 deterministicSample.iidGeneration(sampleSize, generatedSamples, seed);
+                break;
+
+            case "Erlang":
+                Erlang erlangSample=new Erlang();
+                erlangSample.iidGeneration(sampleSize, generatedSamples, seed);
                 break;
             default:
                 throw new UnsupportedOperationException("Distribution is not supported!");
@@ -72,6 +79,10 @@ public class StochNum {
             case "Deterministic":
                 Deterministic deterministicSample=new Deterministic();
                 return  deterministicSample.getMean();
+
+            case "Erlang":
+                Erlang erlangSample=new Erlang();
+                return erlangSample.getMean();
 
             default:
                 throw new UnsupportedOperationException("Distribution is not supported!");
@@ -146,6 +157,26 @@ public class StochNum {
         }
     }
 
+    private class Erlang{
+        void iidGeneration(int sampleSize, double[] generatedSamples, int seed){
+            RandomGenerator generator = RandomGeneratorFactory.createRandomGenerator(new Random());
+            generator.setSeed(seed);
+            GammaDistribution erlangSample = new GammaDistribution(generator, para1, para2);
+            for (int i = 0; i <= sampleSize; i++) {
+               generatedSamples[i] = erlangSample.sample();
+            }
+        }
+
+        double getMean(){
+            return para1*para2;
+        }
+
+        double getOneSample(){
+            RandomGenerator generator = RandomGeneratorFactory.createRandomGenerator(new Random());
+            NormalDistribution normalSample = new NormalDistribution(generator, para1, para1 * para2);
+            return normalSample.sample();
+        }
+    }
     private class Beta{
         void iidGeneration(int sampleSize, double[] generatedSamples, int seed){
             RandomGenerator generator = RandomGeneratorFactory.createRandomGenerator(new Random());

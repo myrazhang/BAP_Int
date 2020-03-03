@@ -61,7 +61,7 @@ public class MainExperiment1_2 {
         int stageNumberUpperBound = myDOE.Jfactor[1];
 
         //here the DoE starts
-        for(int r=1;r<=1;r++){
+  /*      for(int r=1;r<=1;r++){
             String[] bnPositions = {"ML"};
             for(String bn: bnPositions){
                 for (int etaFac=0; etaFac < myDOE.etaFactor.length;etaFac++){
@@ -131,7 +131,7 @@ public class MainExperiment1_2 {
                     }
                 }
             }
-        }
+        }*/
 
         try {
             outRessummary.close();

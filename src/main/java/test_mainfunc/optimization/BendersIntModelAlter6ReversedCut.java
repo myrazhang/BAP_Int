@@ -27,6 +27,8 @@ public class BendersIntModelAlter6ReversedCut extends BendersIntModelAlter6{
     public void solveBAPWithIntModel(double[][] tij)throws IloException {
         this.writer.println("Alter 6 with reversed cuts:");
 
+
+
         double[][] reversedTij = new double[this.simulationLength+1][this.mySystem.nbStage+1];
         for (int i=1;i<=this.simulationLength;i++){
             for (int j=1;j<=this.mySystem.nbStage;j++){
