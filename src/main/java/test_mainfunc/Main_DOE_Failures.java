@@ -20,7 +20,7 @@ public class Main_DOE_Failures {
         String programPath = System.getProperty("user.dir");
 
         //***   Input files   *********************************************************
-        String in_System = programPath + File.separator+"INPUT"+File.separator+"SerialLine_test_DoE_Fail.yaml";
+        String in_System = programPath + File.separator+"INPUT"+File.separator+"SerialLine_test_DoE_Fail_30Mbal.yaml";
         InputStream in_SystemFile = null;
         try {
             in_SystemFile = new FileInputStream(in_System);
@@ -61,7 +61,7 @@ public class Main_DOE_Failures {
         for(int r=1;r<=5;r++){
             for(int Jfac=0; Jfac < myDOE.Jfactor.length; Jfac++){
                 if(Jfac == 0)
-                    totstage=3;
+                    totstage=1;
                 else totstage=3;
                 for(int etaFac=0; etaFac < myDOE.etaFactor.length;etaFac++){
                         for(int alfac=0; alfac< myDOE.alphafactor.length; alfac++){
