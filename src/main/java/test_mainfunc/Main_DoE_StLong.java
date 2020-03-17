@@ -57,7 +57,7 @@ public class Main_DoE_StLong {
 
         //here the DoE starts
         int BNfac = 1;
-        for(int r=1;r<=10;r++){
+        for(int r=1;r<=1;r++){
             for(int Jfac=0; Jfac < myDOE.Jfactor.length; Jfac++){
                 for(int etaFac=0; etaFac < myDOE.etaFactor.length;etaFac++){
                      for (int failfac = 0; failfac < myDOE.diffuprateFactor.length; failfac++) {
@@ -106,8 +106,8 @@ public class Main_DoE_StLong {
                             writersum.write(mySystem.nbStage + " " + myDOE.etaFactor[etaFac] + " "  + myDOE.diffuprateFactor[failfac] + " ");
                             myDOE.tempinstance = "TH_" + thstar + "_Fr" + myDOE.diffuprateFactor[failfac] + "_Rr_" + myDOE.diffdownrateFactor[failfac];
 
-                            // Start optimization with Alter 6 reversed cut
-                            String out_resFile6Reversed = programPath + File.separator + "OUTPUT" + File.separator + "Out_" + myDOE.tempinstance + "_Alter6RevCut_" + (r) + ".txt";
+                            // Start optimization with Alter 6 reversed cut --- NOW STOLLETZ
+                            String out_resFile6Reversed = programPath + File.separator + "OUTPUT" + File.separator + "Out_" + myDOE.tempinstance + "_Stolletz_" + (r) + ".txt";
                             OutputStream outRes6RevCut = null;
                             try {
                                 outRes6RevCut = new FileOutputStream(out_resFile6Reversed);
@@ -115,13 +115,14 @@ public class Main_DoE_StLong {
                                 e.printStackTrace();
                                 System.exit(-1);
                             }
-                            BendersIntModelAlter6ReversedCut myReversedAlter6 = new BendersIntModelAlter6ReversedCut(mySystem, myDOE.etaFactor[etaFac] , lB, uB, myDOE.Njobs, myDOE.W);
-                            myReversedAlter6.writer = new PrintWriter(outRes6RevCut, true);
+
+                         BendersStolletz myStolletz=new BendersStolletz(mySystem, myDOE.etaFactor[etaFac], lB, uB, myDOE.Njobs, myDOE.W);
+                            myStolletz.writer = new PrintWriter(outRes6RevCut, true);
 
                             Stopwatch totalAlter6RevTime = new Stopwatch();
                             totalAlter6RevTime.start();
                             try {
-                                myReversedAlter6.solveBAPWithIntModel(tij);
+                                myStolletz.solveBAPWithStolletz(tij);
                             } catch (Exception exc) {
                                 exc.printStackTrace();
                             }
@@ -132,7 +133,7 @@ public class Main_DoE_StLong {
                             for (int j = 1; j <= mySystem.nbStage - 1; j++) {
                                 totcap = totcap + mySystem.buffer[j];
                             }
-                            writersum.write(myReversedAlter6.numit + " " + df.format(totalAlter6RevTime.elapseTimeSeconds) + " " + df.format(myReversedAlter6.cplexTimeMeasure.elapseTimeSeconds) + " " + totcap + " ");
+                            writersum.write(myStolletz.numit + " " + df.format(totalAlter6RevTime.elapseTimeSeconds) + " " + df.format(myStolletz.cplexTimeMeasure.elapseTimeSeconds) + " " + totcap + " ");
                             for (int j = 1; j <= mySystem.nbStage - 1; j++) {
                                 writersum.write(mySystem.buffer[j] + ",");
                             }
