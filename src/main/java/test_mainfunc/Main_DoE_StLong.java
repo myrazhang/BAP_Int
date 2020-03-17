@@ -52,7 +52,8 @@ public class Main_DoE_StLong {
 
         writersum.write( "nbStage TH* MTTF " +
                 //"Alter5_numit Alter5_TotalTime Alter5_CplexTime Alter5_totalBuffer " +
-                "Alter6Rev_numit Alter6Rev_TotalTime Alter6Rev_CplexTime Alter6Rev_totalBuffer Alter6Rev_singleBuffers ");
+//                "Alter6Rev_numit Alter6Rev_TotalTime Alter6Rev_CplexTime Alter6Rev_totalBuffer Alter6Rev_singleBuffers ");
+                "Stolletz_numit Stolletz_TotalTime Stolletz_CplexTime Stolletz_totalBuffer Stolletz_singleBuffers ");
         writersum.println();
 
         //here the DoE starts
