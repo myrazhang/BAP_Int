@@ -2,6 +2,7 @@ package test_mainfunc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import test_mainfunc.simulation.Failure;
 import test_mainfunc.simulation.SerialLine;
 import test_mainfunc.simulation.StochNum;
 import test_mainfunc.input.DoeInputV1;
@@ -124,6 +125,78 @@ public class SystemCombinationsForDOE {
                 theSystem.CT[j].distribution= "Deterministic";
                 theSystem.CT[j].para1 = this.BNct;
             }
+        }
+        return theSystem;
+    }
+
+    SerialLine getTemplA(){
+
+        SerialLine theSystem=new SerialLine();
+        //save number of stages
+        theSystem.nbStage = 19;
+        double[] meanpt = new double[] {0, 0.47, 0.47, 0.493, 0.488, 0.463, 0.463, 0.498, 0.467, 0.473, 0.487, 0.498, 0.478, 0.488, 0.488, 0.482, 0.43, 0.473, 0.5, 0.467};
+        theSystem.buffer = new int[theSystem.nbStage];
+        //save distribution information
+        theSystem.CT = new StochNum[theSystem.nbStage+1];
+        for (int j = 1; j <= theSystem.nbStage; j++)
+        {
+            theSystem.CT[j]=new StochNum();
+            theSystem.CT[j].distribution= "Deterministic";
+            theSystem.CT[j].para1 = meanpt[j];
+        }
+        return theSystem;
+    }
+
+    SerialLine getTemplB(){
+
+        SerialLine theSystem=new SerialLine();
+        //save number of stages
+        theSystem.nbStage = 23;
+        double[] meanpt = new double[] {0, 5.1, 5.1, 5.3, 5.3, 3.8, 5.2, 5.2, 5, 3.5, 5.1, 5.5, 5.3, 4.7, 3.5, 5, 5.1, 4.1, 4.9, 4.9, 4.9, 6.1, 5.1, 5.1};
+        theSystem.buffer = new int[theSystem.nbStage];
+        //save distribution information
+        theSystem.CT = new StochNum[theSystem.nbStage+1];
+        for (int j = 1; j <= theSystem.nbStage; j++)
+        {
+            theSystem.CT[j]=new StochNum();
+            theSystem.CT[j].distribution= "Deterministic";
+            theSystem.CT[j].para1 = meanpt[j];
+        }
+        return theSystem;
+    }
+
+    SerialLine getTemplC(){
+
+        SerialLine theSystem=new SerialLine();
+        //save number of stages
+        theSystem.nbStage = 8;
+        double[] meanpt = new double[] {0, 233, 233, 234, 216, 212, 220, 255, 257};
+        theSystem.buffer = new int[theSystem.nbStage];
+        //save distribution information
+        theSystem.CT = new StochNum[theSystem.nbStage+1];
+        for (int j = 1; j <= theSystem.nbStage; j++)
+        {
+            theSystem.CT[j]=new StochNum();
+            theSystem.CT[j].distribution= "Deterministic";
+            theSystem.CT[j].para1 = meanpt[j];
+        }
+        return theSystem;
+    }
+
+    SerialLine getTemplD(){
+
+        SerialLine theSystem=new SerialLine();
+        //save number of stages
+        theSystem.nbStage = 14;
+        double[] meanpt = new double[] {0, 25, 34, 33.5, 33.5, 22, 36, 22, 34, 26, 30, 26.5, 33, 29.5, 35};
+        theSystem.buffer = new int[theSystem.nbStage];
+        //save distribution information
+        theSystem.CT = new StochNum[theSystem.nbStage+1];
+        for (int j = 1; j <= theSystem.nbStage; j++)
+        {
+            theSystem.CT[j]=new StochNum();
+            theSystem.CT[j].distribution= "Deterministic";
+            theSystem.CT[j].para1 = meanpt[j];
         }
         return theSystem;
     }
