@@ -141,12 +141,14 @@ public class Main_DOE_Templ {
             meantf = new double[]{0, 1716.781, 3553.11, 1346.28, 638.677, 3381.48, 749.087, 909.416, 1027.895, 1000, 442.589, 1272.748, 1921.292, 6066.72, 1000, 2178.945, 2984.083, 26621.56, 2380.835, 2407.408, 639.547, 221.61, 5242.769, 5242.769};
             myFailure = new Failure();
             for (int j = 1; j <= mySystem.nbStage; j++) {
-                for (int i = 1; i <= myDOE.Njobs; i++) {
-                    Machinept[i] = tij[i][j];
-                }
-                myFailure.repairTimeGeneration(Machinept, meantf[j], meantr[j]);
-                for (int i = 1; i < myDOE.Njobs; i++) {
-                    tij[i][j] = tij[i][j] + myFailure.repairTimeSamples[i];
+                if(meantr[j]>0){
+                    for (int i = 1; i <= myDOE.Njobs; i++) {
+                        Machinept[i] = tij[i][j];
+                    }
+                    myFailure.repairTimeGeneration(Machinept, meantf[j], meantr[j]);
+                    for (int i = 1; i < myDOE.Njobs; i++) {
+                        tij[i][j] = tij[i][j] + myFailure.repairTimeSamples[i];
+                    }
                 }
             }
             thstar = 0.13474;
