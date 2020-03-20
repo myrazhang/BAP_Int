@@ -66,6 +66,7 @@ public class Main_DOE_Templ {
                 lB[j] = myDOE.Lj;
                 uB[j] = myDOE.Uj;
             }
+            System.out.println("LB: " + lB[0] + " UB: " + uB[0]);
             // sampling
             double[][] tij = new double[myDOE.Njobs + 1][mySystem.nbStage + 1];
             int seed = (int) System.currentTimeMillis();
@@ -99,12 +100,12 @@ public class Main_DOE_Templ {
                 System.exit(-1);
             }
 
-            BendersIntModelAlter6ReversedCut myReversedAlter6 = new BendersIntModelAlter6ReversedCut(mySystem, thstar, lB, uB, myDOE.Njobs, myDOE.W);
+           BendersIntModelAlter6ReversedCut myReversedAlter6 = new BendersIntModelAlter6ReversedCut(mySystem, thstar, lB, uB, myDOE.Njobs, myDOE.W);
             myReversedAlter6.writer = new PrintWriter(outRes6RevCut, true);
             Stopwatch totalAlter6RevTime = new Stopwatch();
             totalAlter6RevTime.start();
             try {
-                myReversedAlter6.solveBAPWithIntModel(tij);
+            myReversedAlter6.solveBAPWithIntModel(tij);
             } catch (Exception exc) {
                 exc.printStackTrace();
             }
@@ -130,6 +131,12 @@ public class Main_DOE_Templ {
             //////////LINE B
             mySystem = myDOE.getTemplB();
 
+            lB = new int[mySystem.nbStage];
+            uB = new int[mySystem.nbStage];
+            for (int j = 0; j <= mySystem.nbStage - 1; j++) {
+                lB[j] = myDOE.Lj;
+                uB[j] = myDOE.Uj;
+            }
             // sampling
             tij = new double[myDOE.Njobs + 1][mySystem.nbStage + 1];
             seed = (int) System.currentTimeMillis();
@@ -165,8 +172,8 @@ public class Main_DOE_Templ {
                 System.exit(-1);
             }
 
-            myReversedAlter6 = new BendersIntModelAlter6ReversedCut(mySystem, thstar, lB, uB, myDOE.Njobs, myDOE.W);
-            myReversedAlter6.writer = new PrintWriter(outRes6RevCut, true);
+  myReversedAlter6 = new BendersIntModelAlter6ReversedCut(mySystem, thstar, lB, uB, myDOE.Njobs, myDOE.W);
+    myReversedAlter6.writer = new PrintWriter(outRes6RevCut, true);
             totalAlter6RevTime = new Stopwatch();
             totalAlter6RevTime.start();
             try {
@@ -196,7 +203,12 @@ public class Main_DOE_Templ {
             ////////////////////////////////////////////////////
             //////////LINE C
             mySystem = myDOE.getTemplC();
-
+            lB = new int[mySystem.nbStage];
+            uB = new int[mySystem.nbStage];
+            for (int j = 0; j <= mySystem.nbStage - 1; j++) {
+                lB[j] = myDOE.Lj;
+                uB[j] = myDOE.Uj;
+            }
             // sampling
             tij = new double[myDOE.Njobs + 1][mySystem.nbStage + 1];
             seed = (int) System.currentTimeMillis();
@@ -261,7 +273,12 @@ public class Main_DOE_Templ {
             ////////////////////////////////////////////////////
             //////////LINE D
             mySystem = myDOE.getTemplD();
-
+            lB = new int[mySystem.nbStage];
+            uB = new int[mySystem.nbStage];
+            for (int j = 0; j <= mySystem.nbStage - 1; j++) {
+                lB[j] = myDOE.Lj;
+                uB[j] = myDOE.Uj;
+            }
             // sampling
             tij = new double[myDOE.Njobs + 1][mySystem.nbStage + 1];
             seed = (int) System.currentTimeMillis();
@@ -300,7 +317,7 @@ public class Main_DOE_Templ {
             totalAlter6RevTime = new Stopwatch();
             totalAlter6RevTime.start();
             try {
-                myReversedAlter6.solveBAPWithIntModel(tij);
+                    myReversedAlter6.solveBAPWithIntModel(tij);
             } catch (Exception exc) {
                 exc.printStackTrace();
             }
