@@ -56,9 +56,11 @@ public class Main_DOE_Templ {
 
         //here the DoE starts
         int BNfac = 1;
-        for (int r = 1; r <= 1; r++) {
+        double[] thTarget = new double[]{0.027, 0.028, 0.029};
+        for(int thIndex=0; thIndex<=2; thIndex++){
+            for (int r = 1; r <= 10; r++) {
 
-            //////////LINE A
+            /*//////////LINE A
             SerialLine mySystem = myDOE.getTemplA();
             int[] lB = new int[mySystem.nbStage];
             int[] uB = new int[mySystem.nbStage];
@@ -197,28 +199,28 @@ public class Main_DOE_Templ {
                 outRes6RevCut.close();
             } catch (IOException e) {
                 e.printStackTrace();
-            }
+            }*/
 
 
-            ////////////////////////////////////////////////////
+            /*////////////////////////////////////////////////////
             //////////LINE C
-            mySystem = myDOE.getTemplC();
-            lB = new int[mySystem.nbStage];
-            uB = new int[mySystem.nbStage];
+            SerialLine mySystem = myDOE.getTemplC();
+            int[] lB = new int[mySystem.nbStage];
+            int[] uB = new int[mySystem.nbStage];
             for (int j = 0; j <= mySystem.nbStage - 1; j++) {
                 lB[j] = myDOE.Lj;
                 uB[j] = myDOE.Uj;
             }
             // sampling
-            tij = new double[myDOE.Njobs + 1][mySystem.nbStage + 1];
-            seed = (int) System.currentTimeMillis();
+            double[][]tij = new double[myDOE.Njobs + 1][mySystem.nbStage + 1];
+            int seed = (int) System.currentTimeMillis();
             mySystem.procTimeGeneration(myDOE.Njobs, tij, seed);
 
             //FAILURES
-            Machinept = new double[myDOE.Njobs + 1];
+            double[] Machinept = new double[myDOE.Njobs + 1];
             double mmeantr = 300;
-            meantf = new double[]{0, 2427.273, 2200, 2100, 2007.692, 1200, 2007.762, 7200, 7200};
-            myFailure = new Failure();
+            double[] meantf = new double[]{0, 2427.273, 2200, 2100, 2007.692, 1200, 2007.762, 7200, 7200};
+            Failure myFailure = new Failure();
             for (int j = 1; j <= mySystem.nbStage; j++) {
                 for (int i = 1; i <= myDOE.Njobs; i++) {
                     Machinept[i] = tij[i][j];
@@ -228,13 +230,13 @@ public class Main_DOE_Templ {
                     tij[i][j] = tij[i][j] + myFailure.repairTimeSamples[i];
                 }
             }
-            thstar = 0.00369;
+            double thstar = 0.00369;
             writersum.write("line_C " + thstar + " ");
             myDOE.tempinstance = "lineC_TH_" + thstar;
 
             // Start optimization with Alter 6 reversed cut
-            out_resFile6Reversed = programPath + File.separator + "OUTPUT" + File.separator + "Out_" + myDOE.tempinstance + "_Alter6rev_" + (r) + ".txt";
-            outRes6RevCut = null;
+            String out_resFile6Reversed = programPath + File.separator + "OUTPUT" + File.separator + "Out_" + myDOE.tempinstance + "_Alter6rev_" + (r) + ".txt";
+            OutputStream outRes6RevCut = null;
             try {
                 outRes6RevCut = new FileOutputStream(out_resFile6Reversed);
             } catch (FileNotFoundException e) {
@@ -242,9 +244,9 @@ public class Main_DOE_Templ {
                 System.exit(-1);
             }
 
-            myReversedAlter6 = new BendersIntModelAlter6ReversedCut(mySystem, thstar, lB, uB, myDOE.Njobs, myDOE.W);
+            BendersIntModelAlter6ReversedCut myReversedAlter6 = new BendersIntModelAlter6ReversedCut(mySystem, thstar, lB, uB, myDOE.Njobs, myDOE.W);
             myReversedAlter6.writer = new PrintWriter(outRes6RevCut, true);
-            totalAlter6RevTime = new Stopwatch();
+            Stopwatch totalAlter6RevTime = new Stopwatch();
             totalAlter6RevTime.start();
             try {
                 myReversedAlter6.solveBAPWithIntModel(tij);
@@ -252,7 +254,7 @@ public class Main_DOE_Templ {
                 exc.printStackTrace();
             }
             totalAlter6RevTime.stop();
-            totcap = 0;
+            int totcap = 0;
             for (int j = 1; j <= mySystem.nbStage - 1; j++) {
                 totcap = totcap + mySystem.buffer[j];
             }
@@ -267,86 +269,86 @@ public class Main_DOE_Templ {
                 outRes6RevCut.close();
             } catch (IOException e) {
                 e.printStackTrace();
-            }
+            }*/
 
 
-            ////////////////////////////////////////////////////
-            //////////LINE D
-            mySystem = myDOE.getTemplD();
-            lB = new int[mySystem.nbStage];
-            uB = new int[mySystem.nbStage];
-            for (int j = 0; j <= mySystem.nbStage - 1; j++) {
-                lB[j] = myDOE.Lj;
-                uB[j] = myDOE.Uj;
-            }
-            // sampling
-            tij = new double[myDOE.Njobs + 1][mySystem.nbStage + 1];
-            seed = (int) System.currentTimeMillis();
-            mySystem.procTimeGeneration(myDOE.Njobs, tij, seed);
-
-            //FAILURES
-            Machinept = new double[myDOE.Njobs + 1];
-            mmeantr = 36;
-            meantf = new double[]{0, 1764, 1164, 3564, 1764, 3564, 1164, 1164, 1164, 1164, 1164, 1764, 1164, 1164, 3564};
-            myFailure = new Failure();
-            for (int j = 1; j <= mySystem.nbStage; j++) {
-                for (int i = 1; i <= myDOE.Njobs; i++) {
-                    Machinept[i] = tij[i][j];
+                ////////////////////////////////////////////////////
+                //////////LINE D
+                SerialLine mySystem = myDOE.getTemplD();
+                int [] lB = new int[mySystem.nbStage];
+                int[] uB = new int[mySystem.nbStage];
+                for (int j = 0; j <= mySystem.nbStage - 1; j++) {
+                    lB[j] = myDOE.Lj;
+                    uB[j] = myDOE.Uj;
                 }
-                myFailure.repairTimeGeneration(Machinept, meantf[j], mmeantr);
-                for (int i = 1; i < myDOE.Njobs; i++) {
-                    tij[i][j] = tij[i][j] + myFailure.repairTimeSamples[i];
+                // sampling
+                double[][] tij = new double[myDOE.Njobs + 1][mySystem.nbStage + 1];
+                int seed = (int) System.currentTimeMillis();
+                mySystem.procTimeGeneration(myDOE.Njobs, tij, seed);
+
+                //FAILURES
+                double[] Machinept = new double[myDOE.Njobs + 1];
+                double mmeantr =  36;
+                double[] meantf = new double[]{0, 1764, 1164, 3564, 1764, 3564, 1164, 1164, 1164, 1164, 1164, 1764, 1164, 1164, 3564};
+                Failure myFailure = new Failure();
+                for (int j = 1; j <= mySystem.nbStage; j++) {
+                    for (int i = 1; i <= myDOE.Njobs; i++) {
+                        Machinept[i] = tij[i][j];
+                    }
+                    myFailure.repairTimeGeneration(Machinept, meantf[j], mmeantr);
+                    for (int i = 1; i < myDOE.Njobs; i++) {
+                        tij[i][j] = tij[i][j] + myFailure.repairTimeSamples[i];
+                    }
                 }
-            }
-            thstar = 0.026935;
-            writersum.write("line_D " + thstar + " ");
-            myDOE.tempinstance = "lineD_TH_" + thstar;
+                double thstar = thTarget[thIndex];
+                writersum.write("line_D " + thstar + " ");
+                myDOE.tempinstance = "lineD_TH_" + thstar;
 
-            // Start optimization with Alter 6 reversed cut
-            out_resFile6Reversed = programPath + File.separator + "OUTPUT" + File.separator + "Out_" + myDOE.tempinstance + "_Alter6rev_" + (r) + ".txt";
-            outRes6RevCut = null;
-            try {
-                outRes6RevCut = new FileOutputStream(out_resFile6Reversed);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                System.exit(-1);
-            }
+                // Start optimization with Alter 6 reversed cut
+                String out_resFile6Reversed = programPath + File.separator + "OUTPUT" + File.separator + "Out_" + myDOE.tempinstance + "_Alter6rev_" + (r) + ".txt";
+                OutputStream outRes6RevCut = null;
+                try {
+                    outRes6RevCut = new FileOutputStream(out_resFile6Reversed);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    System.exit(-1);
+                }
 
-            myReversedAlter6 = new BendersIntModelAlter6ReversedCut(mySystem, thstar, lB, uB, myDOE.Njobs, myDOE.W);
-            myReversedAlter6.writer = new PrintWriter(outRes6RevCut, true);
-            totalAlter6RevTime = new Stopwatch();
-            totalAlter6RevTime.start();
-            try {
+                BendersIntModelAlter6ReversedCut myReversedAlter6 = new BendersIntModelAlter6ReversedCut(mySystem, thstar, lB, uB, myDOE.Njobs, myDOE.W);
+                myReversedAlter6.writer = new PrintWriter(outRes6RevCut, true);
+                Stopwatch totalAlter6RevTime = new Stopwatch();
+                totalAlter6RevTime.start();
+                try {
                     myReversedAlter6.solveBAPWithIntModel(tij);
-            } catch (Exception exc) {
-                exc.printStackTrace();
+                } catch (Exception exc) {
+                    exc.printStackTrace();
+                }
+                totalAlter6RevTime.stop();
+                int totcap = 0;
+                for (int j = 1; j <= mySystem.nbStage - 1; j++) {
+                    totcap = totcap + mySystem.buffer[j];
+                }
+                writersum.write(myReversedAlter6.numit + " " + df.format(totalAlter6RevTime.elapseTimeSeconds) + " " + df.format(myReversedAlter6.cplexTimeMeasure.elapseTimeSeconds) + " " + totcap + " ");
+                for (int j = 1; j <= mySystem.nbStage - 1; j++) {
+                    writersum.write(mySystem.buffer[j] + ",");
+                }
+                writersum.println();
+                // End Optimization with Alter6 reversed cut
+                //close single instance file
+                try {
+                    outRes6RevCut.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
             }
-            totalAlter6RevTime.stop();
-            totcap = 0;
-            for (int j = 1; j <= mySystem.nbStage - 1; j++) {
-                totcap = totcap + mySystem.buffer[j];
-            }
-            writersum.write(myReversedAlter6.numit + " " + df.format(totalAlter6RevTime.elapseTimeSeconds) + " " + df.format(myReversedAlter6.cplexTimeMeasure.elapseTimeSeconds) + " " + totcap + " ");
-            for (int j = 1; j <= mySystem.nbStage - 1; j++) {
-                writersum.write(mySystem.buffer[j] + ",");
-            }
-            writersum.println();
-            // End Optimization with Alter6 reversed cut
-            //close single instance file
+        }//end replicates
             try {
-                outRes6RevCut.close();
+                outRessummary.close();
+                in_SystemFile.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-        } //end replicates
-        try {
-            outRessummary.close();
-            in_SystemFile.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
 
     }
 }

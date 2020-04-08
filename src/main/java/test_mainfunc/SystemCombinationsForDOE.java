@@ -102,6 +102,47 @@ public class SystemCombinationsForDOE {
         return theSystem;
     }
 
+    SerialLine getOneSystemConfiguration(int stageNb, String BnPosition, int alphaindex, int noBNctindex, int varindex){
+
+        SerialLine theSystem=new SerialLine();
+        //save number of stages
+        theSystem.nbStage = stageNb;
+        theSystem.buffer = new int[theSystem.nbStage];
+        //save distribution information
+        theSystem.CT = new StochNum[theSystem.nbStage+1];
+        for (int j = 1; j <= theSystem.nbStage; j++)
+        {
+            theSystem.CT[j]=new StochNum();
+            theSystem.CT[j].distribution= this.distr;
+            if(theSystem.CT[j].distribution.equals("LogNorm")){
+                int BN1 =0, BN2=0;
+                if(BnPosition.equals("LL")){
+                    BN1 = theSystem.nbStage-1;
+                    BN2 = theSystem.nbStage;
+                }
+                else if(BnPosition.equals("MM")){
+                    BN1 = theSystem.nbStage/2;
+                    BN2 = theSystem.nbStage/2 + 1;
+                }
+                else if(BnPosition.equals("ML")){
+                    BN1 = theSystem.nbStage/2;
+                    BN2 = theSystem.nbStage;
+                }
+
+                if(j==BN1 || j == BN2){
+                    theSystem.CT[j].para1 = this.BNct;
+                }//end if BN stage
+                else{
+                    theSystem.CT[j].para1 = this.noBNfactor[noBNctindex];
+                }//end else no BN stage
+                theSystem.CT[j].para2 = this.alphafactor[alphaindex];
+            }//end if LogNorm
+            else
+                throw new UnsupportedOperationException("Cycle time distribution is not supported!");
+        }
+        return theSystem;
+    }
+
     SerialLine getStLongLineConfiguration(int Jindex){
 
         SerialLine theSystem=new SerialLine();

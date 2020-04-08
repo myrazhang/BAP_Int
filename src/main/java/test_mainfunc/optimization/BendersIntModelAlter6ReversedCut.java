@@ -9,7 +9,7 @@ import static java.lang.Math.*;
 
 public class BendersIntModelAlter6ReversedCut extends BendersIntModelAlter6{
 
-    private BendersIntModelAlter6 myReversedBAPModel;
+    public BendersIntModelAlter6 myReversedBAPModel;
     private double constantC =1;
 
     public BendersIntModelAlter6ReversedCut(SerialLine system, double THstar, int[] lB, int[] uB, int N, int W) {

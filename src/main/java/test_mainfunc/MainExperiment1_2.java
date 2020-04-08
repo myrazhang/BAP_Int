@@ -19,7 +19,7 @@ public class MainExperiment1_2 {
         String programPath = System.getProperty("user.dir");
 
         //***   Input files   *********************************************************
-        String in_System = programPath + File.separator+"INPUT"+File.separator+"SerialLine_experiment12_highEta.yaml";
+        String in_System = programPath + File.separator+"INPUT"+File.separator+"SerialLine_experiment12_LL.yaml";
         InputStream in_SystemFile = null;
         try {
             in_SystemFile = new FileInputStream(in_System);
@@ -32,7 +32,7 @@ public class MainExperiment1_2 {
 
 
         //***   Output summary file   *********************************************************
-        String out_resFileSummary = programPath +File.separator+"OUTPUT"+File.separator+"BAP_experiment12_higEta_summary.txt";
+        String out_resFileSummary = programPath +File.separator+"OUTPUT"+File.separator+"BAP_experiment12_LL_summary.txt";
 
         OutputStream outRessummary= null;
         try {
@@ -61,8 +61,8 @@ public class MainExperiment1_2 {
         int stageNumberUpperBound = myDOE.Jfactor[1];
 
         //here the DoE starts
-  /*      for(int r=1;r<=1;r++){
-            String[] bnPositions = {"ML"};
+        for(int r=1;r<=1;r++){
+            String[] bnPositions = {"LL"};
             for(String bn: bnPositions){
                 for (int etaFac=0; etaFac < myDOE.etaFactor.length;etaFac++){
                     for(int alfac=0; alfac< myDOE.alphafactor.length; alfac++){
@@ -77,8 +77,8 @@ public class MainExperiment1_2 {
                                     else if(bn.equals("ML")){
                                         BN1 = stageNumber/2+1;
                                     }
-                                    else if(bn.equals("FF")){
-                                        BN1 = 1;
+                                    else if(bn.equals("LL")){
+                                        BN1 = stageNumber-1;
                                     }
                                     double meanBnCt=mySystem.CT[BN1].getMean();
 
@@ -122,6 +122,12 @@ public class MainExperiment1_2 {
                                     writersum.println(BAP);
                                     // End Optimization with Alter6 reversed cut
 
+                                    myReversedAlter6.mijk = null;
+                                    myReversedAlter6.Mijk = null;
+                                    myReversedAlter6.myReversedBAPModel.mijk = null;
+                                    myReversedAlter6.myReversedBAPModel.Mijk = null;
+                                    tij = null;
+
                                     if (myReversedAlter6.cplexTimeMeasure.elapseTimeSeconds>17999){
                                         break;
                                     }
@@ -131,7 +137,7 @@ public class MainExperiment1_2 {
                     }
                 }
             }
-        }*/
+        }
 
         try {
             outRessummary.close();

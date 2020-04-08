@@ -10,8 +10,8 @@ import static java.lang.Math.min;
 public abstract class BendersIntModel extends BendersBAP {
 
     FeasibilityCutCoef newCut;
-    protected double[][][] mijk;
-    protected double[][][] Mijk;
+    public double[][][] mijk;
+    public double[][][] Mijk;
     protected double theta;
 
     // Constructor

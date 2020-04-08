@@ -22,7 +22,7 @@ public class Main_DOE {
         String programPath = System.getProperty("user.dir");
 
         //***   Input files   *********************************************************
-        String in_System = programPath + File.separator+"INPUT"+File.separator+"SerialLine_test_DoE_46.yaml";
+        String in_System = programPath + File.separator+"INPUT"+File.separator+"DoE_1BN_M6_Eta0.90.92_CV0.9.yaml";
         InputStream in_SystemFile = null;
         try {
             in_SystemFile = new FileInputStream(in_System);
@@ -33,7 +33,7 @@ public class Main_DOE {
 
 
         //***   Output summary file   *********************************************************
-        String out_resFileSummary = programPath +File.separator+"OUTPUT"+File.separator+"SerialLine_test_DoE_46_new_summary.txt";
+        String out_resFileSummary = programPath +File.separator+"OUTPUT"+File.separator+"DoE_1BN_M6_Eta0.90.92_CV0.9_summary.txt";
 
         OutputStream outRessummary= null;
         try {
@@ -53,15 +53,14 @@ public class Main_DOE {
         PrintWriter writersum = new PrintWriter(outRessummary, true);
 
         writersum.write( "nbStage BNEfficiency BN1 BN2 Sigma noBN_CT " +
-                //"Alter5_numit Alter5_TotalTime Alter5_CplexTime Alter5_totalBuffer " +
-                "Alter6_numit Alter6_TotalTime Alter6_CplexTime Alter6_totalBuffer " +
-                "Alter6Rev_numit Alter6Rev_TotalTime Alter6Rev_CplexTime Alter6Rev_totalBuffer " +
+                //"Alter6_numit Alter6_TotalTime Alter6_CplexTime Alter6_totalBuffer " +
+                "Alter6Rev_numit Alter6Rev_TotalTime Alter6Rev_CplexTime Alter6Rev_totalBuffer Buffer_allocation " +
                 "Stolletz_numit Stolletz_TotalTime Stolletz_CplexTime Stolletz_totalBuffer");
         writersum.println();
 
         int[] BNpositions=null;
         int[] BNpositions4={0,1,2,3,4,5};
-        int[] BNpositions6={6,7,8,9,10,11};
+        int[] BNpositions6={0,2,5};
 
         //here the DoE starts
 
@@ -97,7 +96,7 @@ public class Main_DOE {
                                     writersum.write( mySystem.nbStage + " "+myDOE.etaFactor[etaFac] +" "+myDOE.BN1[BNfac]+" " + myDOE.BN2[BNfac] +" "+myDOE.alphafactor[alfac]+" "+myDOE.noBNfactor[noBNctfac]+" ");
                                     myDOE.tempinstance = "J"+mySystem.nbStage+"_TH_"+myDOE.etaFactor[etaFac] +"_BN_"+myDOE.BN1[BNfac]+myDOE.BN2[BNfac]+"_alpha_"+myDOE.alphafactor[alfac]+"_BNf_"+myDOE.noBNfactor[noBNctfac];
 
-                                    // Start optimization with Alter 6
+                                    /*// Start optimization with Alter 6
                                     String out_resFile6 = programPath +File.separator+"OUTPUT"+File.separator+"Out_"+ myDOE.tempinstance + "_Alter6_"+(r)+".txt";
                                     OutputStream outRes6= null;
                                     try {
@@ -123,7 +122,7 @@ public class Main_DOE {
                                         totcap = totcap+ mySystem.buffer[j];
                                     }
                                     writersum.write(myAlter6.numit + " " + df.format(totalAlter6Time.elapseTimeSeconds)+ " " +df.format(myAlter6.cplexTimeMeasure.elapseTimeSeconds)+ " "+totcap+" ");
-                                    // End Optimization with Alter6
+                                    // End Optimization with Alter6*/
 
                                     // Start optimization with Alter 6 reversed cut
                                     String out_resFile6Reversed = programPath +File.separator+"OUTPUT"+File.separator+"Out_"+ myDOE.tempinstance + "_Alter6RevCut_"+(r)+".txt";
@@ -145,11 +144,16 @@ public class Main_DOE {
 
                                     totalAlter6RevTime.stop();
 
-                                    totcap=0;
+                                    int totcap=0;
                                     for(int j=1;j<=mySystem.nbStage-1;j++){
                                         totcap = totcap+ mySystem.buffer[j];
                                     }
                                     writersum.write(myReversedAlter6.numit + " " + df.format(totalAlter6RevTime.elapseTimeSeconds)+ " " +df.format(myReversedAlter6.cplexTimeMeasure.elapseTimeSeconds)+ " "+totcap+" ");
+                                    for (int j = 1; j <= mySystem.nbStage - 1; j++) {
+                                        writersum.write (mySystem.buffer[j]+",");
+                                    }
+                                    writersum.write (" ");
+
                                     // End Optimization with Alter6 reversed cut
 
 
@@ -181,11 +185,11 @@ public class Main_DOE {
 
 
                                     //close single instance file
-                                    try {
+                                    /*try {
                                         outRes6.close();
                                     } catch (IOException e) {
                                         e.printStackTrace();
-                                    }
+                                    }*/
                                 }
                             }
                         }//end Mfac

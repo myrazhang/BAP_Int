@@ -38,9 +38,9 @@ public class Main_BalancedLines {
 
         writersum.write("nbStage BNEfficiency BN1 BN2 Sigma noBN_CT " +
                 //"Alter5_numit Alter5_TotalTime Alter5_CplexTime Alter5_totalBuffer " +
-                "Alter6_numit Alter6_TotalTime Alter6_CplexTime Alter6_totalBuffer " +
-                "Alter6Rev_numit Alter6Rev_TotalTime Alter6Rev_CplexTime Alter6Rev_totalBuffer " +
-                "Stolletz_numit Stolletz_TotalTime Stolletz_CplexTime Stolletz_totalBuffer");
+                //"Alter6_numit Alter6_TotalTime Alter6_CplexTime Alter6_totalBuffer " +
+                "Alter6Rev_numit Alter6Rev_TotalTime Alter6Rev_CplexTime Alter6Rev_totalBuffer Buffer_allocation"); //+
+                //"Stolletz_numit Stolletz_TotalTime Stolletz_CplexTime Stolletz_totalBuffer");
         writersum.println();
 
 
@@ -72,104 +72,110 @@ public class Main_BalancedLines {
         }
 
         ArrayList<SerialLine> experimentDesign = new ArrayList<>();
-        //experimentDesign.add(myM4System);
+        experimentDesign.add(myM4System);
         experimentDesign.add(myM6System);
 
 
         for (SerialLine mySystem : experimentDesign) {
             for(int k= 0;k<etaM6.length;k++){
-                for (int r = 1; r <= 5; r++) {
-                    double meanBnCt = mySystem.CT[1].getMean();
-                    int[] lB = new int[mySystem.nbStage];
-                    int[] uB = new int[mySystem.nbStage];
-                    for (int j = 0; j <= mySystem.nbStage - 1; j++) {
-                        lB[j] = lb;
-                        uB[j] = ub;
-                    }
-                    double eta = 0;
-                    if (mySystem.nbStage == 4)
-                        eta = etaM4;
-                    if (mySystem.nbStage == 6)
-                        eta = etaM6[k];
+                if(mySystem.nbStage==4 && k>=1){
+                    break;}else{
+                    for (int r = 1; r <= 5; r++) {
+                        double meanBnCt = mySystem.CT[1].getMean();
+                        int[] lB = new int[mySystem.nbStage];
+                        int[] uB = new int[mySystem.nbStage];
+                        for (int j = 0; j <= mySystem.nbStage - 1; j++) {
+                            lB[j] = lb;
+                            uB[j] = ub;
+                        }
+                        double eta = 0;
+                        if (mySystem.nbStage == 4)
+                            eta = etaM4;
+                        if (mySystem.nbStage == 6)
+                            eta = etaM6[k];
 
-                    // sampling
-                    double[][] tij = new double[Njobs + 1][mySystem.nbStage + 1];
-                    int seed = (int) System.currentTimeMillis();
-                    mySystem.procTimeGeneration(Njobs, tij, seed);
+                        // sampling
+                        double[][] tij = new double[Njobs + 1][mySystem.nbStage + 1];
+                        int seed = (int) System.currentTimeMillis();
+                        mySystem.procTimeGeneration(Njobs, tij, seed);
 
-                    writersum.write(mySystem.nbStage + " " + eta + " " + 0 + " " + 0 + " " + mySystem.CT[1].para2 + " " + meanCT + " ");
-
-
-                    // Start optimization with Alter 6
-                    BendersIntModelAlter6 myAlter6 = new BendersIntModelAlter6(mySystem, eta / meanBnCt, lB, uB, Njobs, W);
-                    myAlter6.writer = new PrintWriter(OutputStream.nullOutputStream());
-
-                    Stopwatch totalAlter6Time = new Stopwatch();
-                    totalAlter6Time.start();
-                    try {
-                        myAlter6.solveBAPWithIntModel(tij);
-                    } catch (Exception exc) {
-                        exc.printStackTrace();
-                    }
-
-                    totalAlter6Time.stop();
-
-                    int totcap = 0;
-                    for (int j = 1; j <= mySystem.nbStage - 1; j++) {
-                        totcap = totcap + mySystem.buffer[j];
-                    }
-                    writersum.write(myAlter6.numit + " " + df.format(totalAlter6Time.elapseTimeSeconds) + " " + df.format(myAlter6.cplexTimeMeasure.elapseTimeSeconds) + " " + totcap + " ");
-                    // End Optimization with Alter6
+                        writersum.write(mySystem.nbStage + " " + eta + " " + 0 + " " + 0 + " " + mySystem.CT[1].para2 + " " + meanCT + " ");
 
 
-                    // Start optimization with Alter 6 reversed cut
-                    BendersIntModelAlter6ReversedCut myReversedAlter6 = new BendersIntModelAlter6ReversedCut(mySystem, eta / meanBnCt, lB, uB, Njobs, W);
-                    myReversedAlter6.writer = new PrintWriter(OutputStream.nullOutputStream());
+                        /*// Start optimization with Alter 6
+                        BendersIntModelAlter6 myAlter6 = new BendersIntModelAlter6(mySystem, eta / meanBnCt, lB, uB, Njobs, W);
+                        myAlter6.writer = new PrintWriter(OutputStream.nullOutputStream());
 
-                    Stopwatch totalAlter6RevTime = new Stopwatch();
-                    totalAlter6RevTime.start();
-                    try {
-                        myReversedAlter6.solveBAPWithIntModel(tij);
-                    } catch (Exception exc) {
-                        exc.printStackTrace();
-                    }
-
-                    totalAlter6RevTime.stop();
-
-                    totcap = 0;
-                    for (int j = 1; j <= mySystem.nbStage - 1; j++) {
-                        totcap = totcap + mySystem.buffer[j];
-                    }
-                    writersum.write(myReversedAlter6.numit + " " + df.format(totalAlter6RevTime.elapseTimeSeconds) + " " + df.format(myReversedAlter6.cplexTimeMeasure.elapseTimeSeconds) + " " + totcap + " ");
-                    // End Optimization with Alter6 reversed cut
-
-                    // Start optimization with stolletz
-                    if (totcap <= 18 || mySystem.nbStage == 4) {
-                        BendersStolletz myStolletz = new BendersStolletz(mySystem, eta / meanBnCt, lB, uB, Njobs, W);
-
-                        Stopwatch totalStolletzTime = new Stopwatch();
-                        totalStolletzTime.start();
+                        Stopwatch totalAlter6Time = new Stopwatch();
+                        totalAlter6Time.start();
                         try {
-                            myStolletz.solveBAPWithStolletz(tij);
+                            myAlter6.solveBAPWithIntModel(tij);
                         } catch (Exception exc) {
                             exc.printStackTrace();
                         }
 
-                        totalStolletzTime.stop();
+                        totalAlter6Time.stop();
 
-                        totcap = 0;
+                        int totcap = 0;
                         for (int j = 1; j <= mySystem.nbStage - 1; j++) {
                             totcap = totcap + mySystem.buffer[j];
                         }
+                        writersum.write(myAlter6.numit + " " + df.format(totalAlter6Time.elapseTimeSeconds) + " " + df.format(myAlter6.cplexTimeMeasure.elapseTimeSeconds) + " " + totcap + " ");
+                        // End Optimization with Alter6*/
 
-                        writersum.write(myStolletz.numit + " " + df.format(totalStolletzTime.elapseTimeSeconds) + " " + df.format(myStolletz.cplexTimeMeasure.elapseTimeSeconds) + " " + totcap);
+
+                        // Start optimization with Alter 6 reversed cut
+                        BendersIntModelAlter6ReversedCut myReversedAlter6 = new BendersIntModelAlter6ReversedCut(mySystem, eta / meanBnCt, lB, uB, Njobs, W);
+                        myReversedAlter6.writer = new PrintWriter(OutputStream.nullOutputStream());
+
+                        Stopwatch totalAlter6RevTime = new Stopwatch();
+                        totalAlter6RevTime.start();
+                        try {
+                            myReversedAlter6.solveBAPWithIntModel(tij);
+                        } catch (Exception exc) {
+                            exc.printStackTrace();
+                        }
+
+                        totalAlter6RevTime.stop();
+
+                        int totcap = 0;
+                        for (int j = 1; j <= mySystem.nbStage - 1; j++) {
+                            totcap = totcap + mySystem.buffer[j];
+                        }
+                        writersum.write(myReversedAlter6.numit + " " + df.format(totalAlter6RevTime.elapseTimeSeconds) + " " + df.format(myReversedAlter6.cplexTimeMeasure.elapseTimeSeconds) + " " + totcap + " ");
+                        for (int j = 1; j <= mySystem.nbStage - 1; j++) {
+                            writersum.write (mySystem.buffer[j]+",");
+                        }
                         writersum.println();
-                    } else {
-                        writersum.println();
+                        // End Optimization with Alter6 reversed cut
+
+                        /*// Start optimization with stolletz
+                        if (totcap <= 18 || mySystem.nbStage == 4) {
+                            BendersStolletz myStolletz = new BendersStolletz(mySystem, eta / meanBnCt, lB, uB, Njobs, W);
+
+                            Stopwatch totalStolletzTime = new Stopwatch();
+                            totalStolletzTime.start();
+                            try {
+                                myStolletz.solveBAPWithStolletz(tij);
+                            } catch (Exception exc) {
+                                exc.printStackTrace();
+                            }
+
+                            totalStolletzTime.stop();
+
+                            totcap = 0;
+                            for (int j = 1; j <= mySystem.nbStage - 1; j++) {
+                                totcap = totcap + mySystem.buffer[j];
+                            }
+                            writersum.write(myStolletz.numit + " " + df.format(totalStolletzTime.elapseTimeSeconds) + " " + df.format(myStolletz.cplexTimeMeasure.elapseTimeSeconds) + " " + totcap);
+
+                            writersum.println();
+                        } else {
+                            writersum.println();
+                        }
+                        //End of optimization with Stolletz*/
                     }
-                    //End of optimization with Stolletz
                 }
-
             }
         }
 
