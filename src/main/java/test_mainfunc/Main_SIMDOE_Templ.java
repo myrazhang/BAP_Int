@@ -95,7 +95,7 @@ public class Main_SIMDOE_Templ {
             for (int j = 1; j <= mySystem.nbStage - 1; j++) {
                 mySystem.buffer[j] = bbuffer[j];
             }
-            mySystem.mySimulation.simBAS(false);
+            mySystem.mySimulation.simBAS(false,0);
 
             writersum.write(mySystem.TH  + " ");
             writersum.println();
@@ -151,7 +151,7 @@ public class Main_SIMDOE_Templ {
             for (int j = 1; j <= mySystem.nbStage - 1; j++) {
                 mySystem.buffer[j] = bbuffer[j];
             }
-            mySystem.mySimulation.simBAS(false);
+            mySystem.mySimulation.simBAS(false,0);
 
             writersum.write(mySystem.TH  + " ");// End Optimization with Alter6 reversed cut
             writersum.println();
@@ -204,7 +204,7 @@ public class Main_SIMDOE_Templ {
             for (int j = 1; j <= mySystem.nbStage - 1; j++) {
                 mySystem.buffer[j] = bbuffer[j];
             }
-            mySystem.mySimulation.simBAS(false);
+            mySystem.mySimulation.simBAS(false,0);
 
             writersum.write(mySystem.TH  + " ");
             writersum.println();
@@ -258,7 +258,7 @@ public class Main_SIMDOE_Templ {
             for (int j = 1; j <= mySystem.nbStage - 1; j++) {
                 mySystem.buffer[j] = bbuffer[j];
             }
-            mySystem.mySimulation.simBAS(false);
+            mySystem.mySimulation.simBAS(false,0);
 
             writersum.write(mySystem.TH  + " ");
             writersum.println();

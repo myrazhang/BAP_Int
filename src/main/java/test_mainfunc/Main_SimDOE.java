@@ -85,27 +85,27 @@ public class Main_SimDOE {
                                         for (int j = 1; j <= mySystem.nbStage - 1; j++) {
                                             mySystem.buffer[j] = lB[j];
                                         }
-                                        mySystem.mySimulation.simBAS(false);
+                                        mySystem.mySimulation.simBAS(false,0);
                                         writersum.write(mySystem.OverallCT + " " + meanBnCt / mySystem.OverallCT + " ");
 
                                         //simulation with UB of buffer
                                         for (int j = 1; j <= mySystem.nbStage - 1; j++) {
                                             mySystem.buffer[j] = uB[j];
                                         }
-                                        mySystem.mySimulation.simBAS(false);
+                                        mySystem.mySimulation.simBAS(false,0);
                                         writersum.println(mySystem.OverallCT + " " + meanBnCt / mySystem.OverallCT);
                                 //simulation with UB of buffer
                                 for(int j=1;j<=mySystem.nbStage-1;j++){
                                     mySystem.buffer[j]=uB[j];
                                 }
-                                mySystem.mySimulation.simBAS(false);
+                                mySystem.mySimulation.simBAS(false,0);
                                 writersum.print(mySystem.OverallCT+" "+meanBnCt/mySystem.OverallCT+" ");
 
                                 //simulation with infinite of buffer
                                 for(int j=1;j<=mySystem.nbStage-1;j++){
                                     mySystem.buffer[j]=200;
                                 }
-                                mySystem.mySimulation.simBAS(false);
+                                mySystem.mySimulation.simBAS(false,0);
                                 writersum.println(mySystem.OverallCT+" "+meanBnCt/mySystem.OverallCT);
 
                             }

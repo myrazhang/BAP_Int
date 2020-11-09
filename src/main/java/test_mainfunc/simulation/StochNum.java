@@ -90,12 +90,11 @@ public class StochNum {
 
     }
 
-    double getOneSample(double rate, int seed){
+    double getOneSample(double rate){
 
             RandomGenerator generator = RandomGeneratorFactory.createRandomGenerator(new Random());
           //  generator.setSeed(seed);
 
-            double p;
             ExponentialDistribution expSample= new ExponentialDistribution(generator,rate);
             double generatedSamples;
             generatedSamples = expSample.sample();

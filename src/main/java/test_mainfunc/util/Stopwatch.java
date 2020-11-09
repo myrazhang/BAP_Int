@@ -6,8 +6,10 @@ public class Stopwatch {
     private boolean isRunning=false;
 
     public void start(){
-        if (isRunning)
+        if (isRunning){
             System.err.println("Cannot start Stopwatch while it is running!");
+
+        }
         else{
             elapseTimeSeconds=0;
             this.startTime=System.currentTimeMillis();
@@ -16,8 +18,9 @@ public class Stopwatch {
     }
 
     public void restart(){
-        if (isRunning)
+        if (isRunning){
             System.err.println("Cannot restart Stopwatch while it is running!");
+        }
         else{
             this.startTime=System.currentTimeMillis();
             this.isRunning=true;

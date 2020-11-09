@@ -26,11 +26,11 @@ public class BendersIntModelAlter5 extends BendersIntModel {
     }
 
 
-    @Override
-    public void solveBAPWithIntModel(double[][] tij)throws IloException {
+    /*@Override
+    public void solveBAPWithIntModel(double[][] tij,int offset,boolean resetMm)throws IloException {
         this.writer.println("Alter 5:");
-        super.solveBAPWithIntModel(tij);
-    }
+        super.solveBAPWithIntModel(tij,offset,resetMm);
+    }*/
 
     @Override
     public void addFeasibilityCut(){

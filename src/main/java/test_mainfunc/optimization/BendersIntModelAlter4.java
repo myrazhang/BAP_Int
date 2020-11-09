@@ -16,11 +16,11 @@ public class BendersIntModelAlter4 extends BendersIntModel{
         super(system, THstar,  lB, uB, N,  W);
     }
 
-    @Override
-    public void solveBAPWithIntModel(double[][] tij)throws IloException {
+    /*@Override
+    public void solveBAPWithIntModel(double[][] tij,int offset,boolean resetMm)throws IloException {
         this.writer.println("Alter 4:");
-        super.solveBAPWithIntModel(tij);
-    }
+        super.solveBAPWithIntModel(tij,offset,resetMm);
+    }*/
 
     @Override
     public void addFeasibilityCut(){

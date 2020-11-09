@@ -52,15 +52,9 @@
             <artifactId>maven-assembly-plugin</artifactId>
             <version>3.2.0</version>
             <configuration>
-                <descriptorRefs>
-                    <descriptorRef>jar-with-dependencies</descriptorRef>
-                </descriptorRefs>
-                <archive>
-                    <manifest>
-                        <!--  这里写Main class的名字  -->
-                        <mainClass>test_mainfunc.MainExperiment1_2</mainClass>
-                    </manifest>
-                </archive>
+                <descriptors>
+                <descriptor>src/assembly/zip-with-dependencies.xml</descriptor>
+            </descriptors>
             </configuration>
             <executions>
                 <execution>

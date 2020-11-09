@@ -1,17 +1,16 @@
 package test_mainfunc;
 
-import java.io.*;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-
-import test_mainfunc.optimization.BendersIntModelAlter5;
 import test_mainfunc.optimization.BendersIntModelAlter6;
 import test_mainfunc.optimization.BendersIntModelAlter6ReversedCut;
 import test_mainfunc.optimization.BendersStolletz;
 import test_mainfunc.simulation.SerialLine;
 import test_mainfunc.util.Stopwatch;
 
-public class TestAlter6 {
+import java.io.*;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+
+public class TestDecomposition {
 
     public static void main(String argv[]){
         String programPath = System.getProperty("user.dir");
@@ -28,7 +27,7 @@ public class TestAlter6 {
 
 
         //***   Output summary file   *********************************************************
-        String out_resFileSummary = programPath + "\\OUTPUT\\Alter6_6stage.txt";
+        String out_resFileSummary = programPath + "\\OUTPUT\\Decomposition_6stage.txt";
 
         OutputStream outRessummary= null;
         try {
@@ -57,7 +56,7 @@ public class TestAlter6 {
 
         // sampling
         double[][] tij=new double[N+1][mySystem.nbStage+1];
-        int seed =(int) System.currentTimeMillis();
+        int seed = 2019;
         mySystem.procTimeGeneration(N,tij,seed);
 
         // output file
@@ -70,51 +69,67 @@ public class TestAlter6 {
             System.exit(-1);
         }
 
-
         //output
         writersum.println("Method totaltime iterations totalcap bj");
-        // BAP with Alter 5
-        /*BendersIntModelAlter5 myAlter5=new BendersIntModelAlter5(mySystem, myTHstar, myLB, myUB, N, 1);
-        myAlter5.writer = new PrintWriter(outRes, true);
-        Stopwatch totalAlter5Time=new Stopwatch();
-        totalAlter5Time.start();
+        int totalBuffer;
+
+        //BAP with reversed_Alter6 + decomposition
+        BendersIntModelAlter6ReversedCut myReversedAlter6Decomp=new BendersIntModelAlter6ReversedCut(mySystem, myTHstar, myLB, myUB, N, 1);
+        myReversedAlter6Decomp.writer = new PrintWriter(outRes, true);
+        Stopwatch totalReversedAlter6DecompTime=new Stopwatch();
+        totalReversedAlter6DecompTime.start();
         try{
-            myAlter5.solveBAPWithIntModel(tij);
+            myReversedAlter6Decomp.solveWithDecomposition(tij);
         }catch(Exception exc){exc.printStackTrace();}
-        totalAlter5Time.stop();
-        int totalBuffer=0;
+        totalReversedAlter6DecompTime.stop();
+        totalBuffer=0;
         for(int j=1;j<mySystem.nbStage;j++)
             totalBuffer+=mySystem.buffer[j];
-        writersum.print("Alter5 "+df.format(totalAlter5Time.elapseTimeSeconds)+"seconds "+ myAlter5.numit+"iterations "+totalBuffer+" ");
-        for(int j=1;j<mySystem.nbStage;j++)
-            writersum.print(mySystem.buffer[j]+" ");
-        writersum.println();*/
-
-
-        //BAP with Alter6
-        BendersIntModelAlter6ReversedCut myAlter6=new BendersIntModelAlter6ReversedCut(mySystem, myTHstar, myLB, myUB, N, 1);
-        myAlter6.writer = new PrintWriter(outRes, true);
-        Stopwatch totalAlter6Time=new Stopwatch();
-        totalAlter6Time.start();
-        try{
-            myAlter6.solveBAPWithIntModel(tij,true);
-        }catch(Exception exc){exc.printStackTrace();}
-        totalAlter6Time.stop();
-        int totalBuffer=0;
-        for(int j=1;j<mySystem.nbStage;j++)
-            totalBuffer+=mySystem.buffer[j];
-        writersum.print("Alter6 "+df.format(totalAlter6Time.elapseTimeSeconds)+" seconds "+ myAlter6.numit+" iterations "+totalBuffer+" ");
+        writersum.print("ReversedAlter6Decomp "+df.format(totalReversedAlter6DecompTime.elapseTimeSeconds)+" seconds "+ myReversedAlter6Decomp.numit+" iterations "+totalBuffer+" ");
         for(int j=1;j<mySystem.nbStage;j++)
             writersum.print(mySystem.buffer[j]+" ");
         writersum.println();
 
 
+        //BAP with Stolletz + decomposition
+        BendersStolletz myStolletzDecomposition=new BendersStolletz(mySystem, myTHstar, myLB, myUB, N, 1);
+        Stopwatch totalStolletzDecompositionTime=new Stopwatch();
+        totalStolletzDecompositionTime.start();
+        try{
+            myStolletzDecomposition.solveWithDecomposition(tij);
+        }catch(Exception exc){exc.printStackTrace();}
+        totalStolletzDecompositionTime.stop();
+        totalBuffer=0;
+        for(int j=1;j<mySystem.nbStage;j++)
+            totalBuffer+=mySystem.buffer[j];
+        writersum.print("StolletzDecomp "+df.format(totalStolletzDecompositionTime.elapseTimeSeconds)+"seconds "+ myStolletzDecomposition.numit+"iterations "+totalBuffer+" ");
+        for(int j=1;j<mySystem.nbStage;j++)
+            writersum.print(mySystem.buffer[j]+" ");
+        writersum.println();
+
+
+        //BAP with reversed_Alter6
+        BendersIntModelAlter6ReversedCut myReversedAlter6=new BendersIntModelAlter6ReversedCut(mySystem, myTHstar, myLB, myUB, N, 1);
+        myReversedAlter6.writer = new PrintWriter(outRes, true);
+        Stopwatch totalReversedAlter6Time=new Stopwatch();
+        totalReversedAlter6Time.start();
+        try{
+            myReversedAlter6.solveBAPWithIntModel(tij,true);
+        }catch(Exception exc){exc.printStackTrace();}
+        totalReversedAlter6Time.stop();
+        totalBuffer=0;
+        for(int j=1;j<mySystem.nbStage;j++)
+            totalBuffer+=mySystem.buffer[j];
+        writersum.print("ReversedAlter6 "+df.format(totalReversedAlter6Time.elapseTimeSeconds)+" seconds "+ myReversedAlter6.numit+" iterations "+totalBuffer+" ");
+        for(int j=1;j<mySystem.nbStage;j++)
+            writersum.print(mySystem.buffer[j]+" ");
+        writersum.println();
         //BAP with Stolletz
         /*BendersStolletz myStolletz=new BendersStolletz(mySystem, myTHstar, myLB, myUB, N, 1);
         Stopwatch totalStolletzTime=new Stopwatch();
         totalStolletzTime.start();
         try{
-            myStolletz.solveBAPWithStolletz(tij);
+            myStolletz.solveBAPWithStolletz(tij,0);
         }catch(Exception exc){exc.printStackTrace();}
         totalStolletzTime.stop();
         totalBuffer=0;
@@ -125,22 +140,6 @@ public class TestAlter6 {
             writersum.print(mySystem.buffer[j]+" ");
         writersum.println();*/
 
-        //BAP with reversed_Alter6
-        BendersIntModelAlter6ReversedCut myReversedAlter6=new BendersIntModelAlter6ReversedCut(mySystem, myTHstar, myLB, myUB, N, 1);
-        myReversedAlter6.writer = new PrintWriter(outRes, true);
-        Stopwatch totalReversedAlter6Time=new Stopwatch();
-        totalReversedAlter6Time.start();
-        try{
-            myReversedAlter6.solveBAPWithIntModel(tij,false);
-        }catch(Exception exc){exc.printStackTrace();}
-        totalReversedAlter6Time.stop();
-        totalBuffer=0;
-        for(int j=1;j<mySystem.nbStage;j++)
-            totalBuffer+=mySystem.buffer[j];
-        writersum.print("ReversedAlter6 "+df.format(totalReversedAlter6Time.elapseTimeSeconds)+" seconds "+ myReversedAlter6.numit+" iterations "+totalBuffer+" ");
-        for(int j=1;j<mySystem.nbStage;j++)
-            writersum.print(mySystem.buffer[j]+" ");
-        writersum.println();
-
     }
+
 }

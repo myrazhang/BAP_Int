@@ -1,6 +1,6 @@
 NbStage: 4
 Lj: 1
-Uj: 40
+Uj: 30
 THstar: 0.45
 Buffer: 1 1 1
 

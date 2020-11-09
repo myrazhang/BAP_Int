@@ -131,7 +131,7 @@ public class Main_BalancedLines {
                         Stopwatch totalAlter6RevTime = new Stopwatch();
                         totalAlter6RevTime.start();
                         try {
-                            myReversedAlter6.solveBAPWithIntModel(tij);
+                            myReversedAlter6.solveBAPWithIntModel(tij,false);
                         } catch (Exception exc) {
                             exc.printStackTrace();
                         }

@@ -14,7 +14,6 @@ public class SerialLine {
     public double OverallCT;
     public double TH;
 
-
     // constructing a SINGLE serial line from a input file is not needed currently. For example:
     /*public SerialLine(InputStream system) {}*/
 
@@ -63,6 +62,21 @@ public class SerialLine {
         }
     }
 
+    public SerialLine subsystem(int firstMachineIndex, int lastMachineIndex){
+        SerialLine newSystem = new SerialLine();
+
+        newSystem.nbStage = lastMachineIndex - firstMachineIndex +1;
+        newSystem.buffer=new int[newSystem.nbStage];
+        newSystem.CT=new StochNum[newSystem.nbStage+1];
+        for(int j=firstMachineIndex;j<=lastMachineIndex-1;j++)
+            newSystem.buffer[j-firstMachineIndex+1]=this.buffer[j];
+
+        for(int j=firstMachineIndex;j<=lastMachineIndex;j++)
+            newSystem.CT[j-firstMachineIndex+1]=this.CT[j];
+
+        return newSystem;
+    }
+
     // Processing time generation
     public void procTimeGeneration(int N, double[][] pij,int seed){
         for(int j=1;j<=this.nbStage;j++){
@@ -106,8 +120,8 @@ public class SerialLine {
         int W;
         private double[][] bar_Sij;
         private double[][] bar_Dij;
-        private double[][] Sij;
-        private double[][] Dij;
+        public double[][] Sij;
+        public double[][] Dij;
         private int[][] bsij;
         private int[][] buij;
         private int[][] bvij;
@@ -145,6 +159,45 @@ public class SerialLine {
                     bvij[i][j] = 0;
                     bwij[i][j] = 0;
                 }
+            }
+        }
+
+        public void simBAS(boolean steadyState, int firstMachineOffset){
+            initialization();
+
+            if(!steadyState){
+                for (int i = 1; i <= this.N; i++) {
+                    for (int j = 1; j <= nbStage; j++){
+                        this.start_BAS(i,j);
+                        this.departure_BAS(i,j,firstMachineOffset);
+                    }
+                }
+                for (int j = 1; j <= nbStage; j++) {
+                    for (int i = 1; i <= this.W; i++) {
+                        this.bar_Dij[i][j]=this.Dij[i][j];
+                        this.bar_Sij[i][j]=this.Sij[i][j];
+                    }
+                }
+                OverallCT = (this.Dij[this.N][nbStage] - this.Dij[this.W][nbStage]) / (double)(this.N - this.W);
+                TH=(double) 1/OverallCT;
+            }
+            else{
+                for (int j = 1; j <= nbStage; j++) {
+                    for (int i = 1; i <= this.W; i++) {
+                        this.Dij[i][j] = this.bar_Dij[i][j];
+                        this.Sij[i][j] = this.bar_Sij[i][j];
+                    }
+                }
+
+                for (int i = this.W+1; i <= this.N; i++){
+                    for (int j = 1; j <= nbStage; j++){
+                        this.start_BAS(i,j);
+                        this.departure_BAS(i,j,firstMachineOffset);
+                    }
+                }
+                OverallCT = (this.Dij[N][nbStage]- Dij[W][nbStage])/ (double)(this.N-this.W);
+                TH=(double) 1/OverallCT;
+
             }
         }
 
@@ -187,9 +240,54 @@ public class SerialLine {
             }
         }
 
+
+        /*public void simDualBAS(boolean steadyState, int firstMachineOffset) {
+
+            //*****************************************************************************
+            //*****************************************************************************
+            //** The notations of u,v,w,s is consistent with the journal paper ************
+            //** on throughput improvement (2019).                             ************
+            //*****************************************************************************
+            //*****************************************************************************
+
+            for (int i = 1; i <= this.N; i++){
+                for (int j = 1; j <= nbStage; j++){
+                    this.sij[i][j] = 0;
+                    this.uij[i][j] = 0;
+                    this.vij[i][j] = 0;
+                    this.wij[i][j] = 0;
+                }
+            }
+
+            this.simBAS(steadyState,firstMachineOffset);
+            if (!steadyState) {
+
+                /////////////////////////////////////////////////////////////////////////////////////////////
+                ///// Simulate from i=0 /////////////////////////////////////////////////////////////////////
+                /////////////////////////////////////////////////////////////////////////////////////////////
+                /////buij[i][j] = 1: D[i][j] trigerred by S[i][j]               /////////////////////////////
+                /////bwij[i][j] = 1: D[i][j] trigerred by S[i-b_j][j+1] BLOCKAGE ////////////////////////////
+                /////bvij[i][j] = 1: S[i][j] trigerred by D[i-1][j]             /////////////////////////////
+                /////bsij[i][j] = 1: S[i][j] trigerred by D[i][j-1]   STARVATION ////////////////////////////
+                /////////////////////////////////////////////////////////////////////////////////////////////
+                for (int i = this.N; i >= 1; i--) {
+                    for (int j = nbStage; j >=1 ; j--) {
+                        this.departure_dual(i,j);
+                        this.start_dual(i,j);
+                    }
+                }
+            }
+            else {
+                for (int i = this.N; i >= this.W+1; i--){
+                    for (int j = nbStage; j >= 1; j--){
+                        this.departure_dual(i,j);
+                        this.start_dual(i,j);
+                    }
+                }
+            }
+        }*/
+
         public void simDualBAS(boolean steadyState) {
-
-
 
             //*****************************************************************************
             //*****************************************************************************
@@ -262,7 +360,32 @@ public class SerialLine {
 
         }
 
-        private void departure_BAS(int i0,int j0){
+        private void departure_BAS(int i0,int j0, int firstMachineIndex // start
+        ){
+
+            if (j0 == nbStage) {
+                this.Dij[i0][j0] = this.Sij[i0][j0] + this.tij[i0][j0+firstMachineIndex];
+                this.buij[i0][j0] = 1;
+            }
+            else if (i0 <= buffer[j0] + 1) {
+                this.Dij[i0][j0] = this.Sij[i0][j0] + this.tij[i0][j0+firstMachineIndex];
+                this.buij[i0][j0] = 1;
+            }
+
+            else {
+                if (this.Sij[i0][j0] + this.tij[i0][j0+firstMachineIndex] >= this.Dij[i0 - buffer[j0]-1][j0 + 1]) {
+                    this.Dij[i0][j0] = this.Sij[i0][j0] + this.tij[i0][j0+firstMachineIndex];
+                    this.buij[i0][j0] = 1;
+                }
+                else{
+                    this.Dij[i0][j0] = this.Dij[i0 - buffer[j0]-1][j0 + 1];
+                    bwij[i0][j0] = 1;
+                }
+            }
+        }
+
+        private void departure_BAS(int i0,int j0 // start
+        ){
 
             if (j0 == nbStage) {
                 this.Dij[i0][j0] = this.Sij[i0][j0] + this.tij[i0][j0];
@@ -274,6 +397,7 @@ public class SerialLine {
             }
 
             else {
+
                 if (this.Sij[i0][j0] + this.tij[i0][j0] >= this.Dij[i0 - buffer[j0]-1][j0 + 1]) {
                     this.Dij[i0][j0] = this.Sij[i0][j0] + this.tij[i0][j0];
                     this.buij[i0][j0] = 1;
@@ -314,23 +438,6 @@ public class SerialLine {
         }
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     //Initial master problem.

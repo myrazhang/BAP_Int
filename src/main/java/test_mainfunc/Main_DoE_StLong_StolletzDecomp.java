@@ -1,7 +1,5 @@
 package test_mainfunc;
 
-import test_mainfunc.optimization.BendersIntModelAlter5;
-import test_mainfunc.optimization.BendersIntModelAlter6;
 import test_mainfunc.optimization.BendersIntModelAlter6ReversedCut;
 import test_mainfunc.optimization.BendersStolletz;
 import test_mainfunc.simulation.Failure;
@@ -12,10 +10,8 @@ import java.io.*;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
-import static java.lang.Math.exp;
 
-
-public class Main_DoE_StLong {
+public class Main_DoE_StLong_StolletzDecomp {
 
     public static void main(String argv[]) throws Exception {
         String programPath = System.getProperty("user.dir");
@@ -32,7 +28,7 @@ public class Main_DoE_StLong {
 
 
         //***   Output summary file   *********************************************************
-        String out_resFileSummary = programPath + File.separator + "OUTPUT" + File.separator + "BAP_DOE_StLong_50h.txt";
+        String out_resFileSummary = programPath + File.separator + "OUTPUT" + File.separator + "BAP_DOE_StLong_StolletzDecom"+(System.currentTimeMillis())+".txt";
 
         OutputStream outRessummary = null;
         try {
@@ -60,7 +56,7 @@ public class Main_DoE_StLong {
         for (int r = 1; r <= 1; r++) {
             for (int Jfac = 0; Jfac < myDOE.Jfactor.length; Jfac++) {
                 for (int etaFac = 0; etaFac < myDOE.etaFactor.length; etaFac++) {
-                    for (int failfac = 0; failfac < myDOE.diffuprateFactor.length-1; failfac++) {
+                    for (int failfac = 0; failfac < myDOE.diffuprateFactor.length; failfac++) {
                         SerialLine mySystem = myDOE.getStLongLineConfiguration(Jfac);
                         int[] lB = new int[mySystem.nbStage];
                         int[] uB = new int[mySystem.nbStage];
@@ -102,17 +98,16 @@ public class Main_DoE_StLong {
                         }
 
 
-                        // Optimization with DEO + decomposition
                         {
-                            writersum.write( "DEO+Decomp "+mySystem.nbStage + " " + myDOE.etaFactor[etaFac] + " " + myDOE.diffuprateFactor[failfac] + " ");
+                            writersum.write( "Stolletz+Decomp "+mySystem.nbStage + " " + myDOE.etaFactor[etaFac] + " " + myDOE.diffuprateFactor[failfac] + " ");
                             myDOE.tempinstance = "TH_" + thstar + "_Fr" + myDOE.diffuprateFactor[failfac] + "_Rr_" + myDOE.diffdownrateFactor[failfac];
-                            BendersIntModelAlter6ReversedCut myRevAlter6 = new BendersIntModelAlter6ReversedCut(mySystem, myDOE.etaFactor[etaFac], lB, uB, myDOE.Njobs, myDOE.W);
-                            myRevAlter6.writer = new PrintWriter(OutputStream.nullOutputStream());
+                            BendersStolletz myStolletz = new BendersStolletz(mySystem, myDOE.etaFactor[etaFac], lB, uB, myDOE.Njobs, myDOE.W);
+                            myStolletz.writer = new PrintWriter(OutputStream.nullOutputStream());
 
                             Stopwatch totalAlter6RevTime = new Stopwatch();
                             totalAlter6RevTime.start();
                             try {
-                                myRevAlter6.solveWithDecomposition(tij);
+                                myStolletz.solveWithDecomposition(tij);
                             } catch (Exception exc) {
                                 exc.printStackTrace();
                             }
@@ -123,41 +118,12 @@ public class Main_DoE_StLong {
                             for (int j = 1; j <= mySystem.nbStage - 1; j++) {
                                 totcap = totcap + mySystem.buffer[j];
                             }
-                            writersum.write(myRevAlter6.numit + " " + df.format(totalAlter6RevTime.elapseTimeSeconds) + " " + df.format(myRevAlter6.cplexTimeMeasure.elapseTimeSeconds) + " " + totcap + " ");
+                            writersum.write(myStolletz.numit + " " + df.format(totalAlter6RevTime.elapseTimeSeconds) + " " + df.format(myStolletz.cplexTimeMeasure.elapseTimeSeconds) + " " + totcap + " ");
                             for (int j = 1; j <= mySystem.nbStage - 1; j++) {
                                 writersum.write(mySystem.buffer[j] + ",");
                             }
                             writersum.println();
                         }
-
-                        // Optimization with DEO no decomposition
-                        {
-                            /*writersum.write( "DEO "+mySystem.nbStage + " " + myDOE.etaFactor[etaFac] + " " + myDOE.diffuprateFactor[failfac] + " ");
-                            myDOE.tempinstance = "TH_" + thstar + "_Fr" + myDOE.diffuprateFactor[failfac] + "_Rr_" + myDOE.diffdownrateFactor[failfac];
-                            BendersIntModelAlter6ReversedCut myRevAlter6 = new BendersIntModelAlter6ReversedCut(mySystem, myDOE.etaFactor[etaFac], lB, uB, myDOE.Njobs, myDOE.W);
-                            myRevAlter6.writer = new PrintWriter(OutputStream.nullOutputStream());
-
-                            Stopwatch totalAlter6RevTime = new Stopwatch();
-                            totalAlter6RevTime.start();
-                            try {
-                                myRevAlter6.solveBAPWithIntModel(tij, false);
-                            } catch (Exception exc) {
-                                exc.printStackTrace();
-                            }
-
-                            totalAlter6RevTime.stop();
-
-                            int totcap = 0;
-                            for (int j = 1; j <= mySystem.nbStage - 1; j++) {
-                                totcap = totcap + mySystem.buffer[j];
-                            }
-                            writersum.write(myRevAlter6.numit + " " + df.format(totalAlter6RevTime.elapseTimeSeconds) + " " + df.format(myRevAlter6.cplexTimeMeasure.elapseTimeSeconds) + " " + totcap + " ");
-                            for (int j = 1; j <= mySystem.nbStage - 1; j++) {
-                                writersum.write(mySystem.buffer[j] + ",");
-                            }
-                            writersum.println();*/
-                        }
-
 
                     }
                 }//end THfac

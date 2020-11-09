@@ -5,8 +5,10 @@ import ilog.cplex.*;
 import test_mainfunc.simulation.SerialLine;
 import test_mainfunc.util.Stopwatch;
 
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -14,18 +16,20 @@ public abstract class BendersBAP {
 
     //Input
     public double THstar;
-    SerialLine mySystem;
+    public SerialLine mySystem;
     int upperBoundj[];
     int lowerBoundj[];
     int simulationLength;
     int warmupLength;
-    final int MAX_ITE=20000;
-    final double MAX_CPLEX_TIME=18000;
+    int MAX_ITE=20000;
+    double MAX_TIME=18000;
+    double TOLERANCE_RATIO = 0.000;
     // End of input
 
     //Output
     public int numit; // Iteration number
     public Stopwatch cplexTimeMeasure; // Total cplex time
+    public Stopwatch totalTimeMeasure; // Total time
     public PrintWriter writer; // Output file: this file
     private List<IterationSolution> bjsol;// Master problem solution of each iteration
     boolean solvability; // whether the problem is feasible or not.
@@ -43,7 +47,6 @@ public abstract class BendersBAP {
     // Constructor
     BendersBAP(SerialLine system, double THstar,int[] lB, int[] uB, int N, int W){
         // Input
-        this.mySystem=new SerialLine();
         this.mySystem=system;
         this.THstar=THstar;
         this.lowerBoundj=new int[this.mySystem.nbStage];
@@ -59,7 +62,8 @@ public abstract class BendersBAP {
         this.bjsol=new ArrayList<>();
         this.numit=0;
         this.cplexTimeMeasure=new Stopwatch();
-
+        this.totalTimeMeasure=new Stopwatch();
+        this.writer = new PrintWriter(OutputStream.nullOutputStream());
 
         // Cplex
         try {
@@ -76,6 +80,67 @@ public abstract class BendersBAP {
         }catch(Exception exc){exc.printStackTrace();}
     }
 
+    BendersBAP(SerialLine system, double THstar, int[] lB, int[] uB, int N, int W,
+               // **************************************************************
+               int j1, // index of first machine
+               int j2, // index of last machine
+               HashMap<String,Integer> initialBounds
+               // ***************************************************************
+    ){
+        // Input
+        this.mySystem=system.subsystem(j1,j2);
+        this.THstar=THstar;
+        this.lowerBoundj=new int[this.mySystem.nbStage];
+        this.upperBoundj=new int[this.mySystem.nbStage];
+        for(int j=1 ; j<= this.mySystem.nbStage-1;j++){
+            this.lowerBoundj[j]=lB[j+j1-1];
+            this.upperBoundj[j]=uB[j+j1-1];
+        }
+        this.simulationLength=N;
+        this.warmupLength=W;
+
+        // Output
+        this.bjsol=new ArrayList<>();
+        this.numit=0;
+        this.cplexTimeMeasure=new Stopwatch();
+        this.totalTimeMeasure=new Stopwatch();
+        this.writer = new PrintWriter(OutputStream.nullOutputStream());
+
+
+        // Cplex
+        try {
+
+            this.cplex=new IloCplex();
+
+            InitialEqConstraints=new ArrayList<>();
+            InitialLeConstraints=new ArrayList<>();
+
+            this.setupVariables();
+            this.initialConstraints();
+            this.initializeMasterProb();
+
+            if(initialBounds != null){
+                for(int j=j1;j<=j2-1;j++){
+                    for(int j0=j+1;j0<=j2;j0++){
+                        if(initialBounds.containsKey(j+"_"+j0)){
+                            IloLinearNumExpr constBound = cplex.linearNumExpr();
+                            for(int k=j-j1+1;k<=j0-j1;k++){
+                                constBound.addTerm(1,bj[k]);
+                            }
+                            cplex.addGe(constBound,initialBounds.get(j+"_"+j0),"bound_"+j+"_"+j0);
+                        }
+                    }
+                }
+            }
+
+        }catch(Exception exc){exc.printStackTrace();}
+    }
+
+    public void addInitialBounds(HashMap<String,Integer> initialBounds,int j1,int j2,int bound){
+        initialBounds.put(j1+"_"+j2,bound);
+    }
+
+
     // Public methods
     public void setupVariables() throws IloException{
         String label;
@@ -86,9 +151,14 @@ public abstract class BendersBAP {
         }
     }
     public void initialConstraints(){}
-    public void solveMasterProb() throws IloException{
+    public void solveMasterProb(double timeLimit) throws IloException{
         try{
-            double timeLimit=MAX_CPLEX_TIME-cplexTimeMeasure.elapseTimeSeconds;
+            //double timeLimit=MAX_CPLEX_TIME-cplexTimeMeasure.elapseTimeSeconds;
+            if(timeLimit<=0) {
+                this.solvability = false;
+                System.out.println("Time is used up!");
+                return;
+            }
             cplex.setParam(IloCplex.DoubleParam.TiLim,timeLimit);
             cplex.setParam(IloCplex.Param.Threads, 16);
 
@@ -111,6 +181,8 @@ public abstract class BendersBAP {
             this.solution=new int [mySystem.nbStage];
         }
     }
+    public void setMaxIte(int i){MAX_ITE = i;}
+    public void setMaxTime(double t){MAX_TIME=t;}
 
     // Private & package-private methods
     void endMasterProb() throws IloException{

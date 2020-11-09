@@ -25,7 +25,7 @@ public class Failure {
         //double totre=0;
         //int counttf=0;
         //int countre=0;
-        double ttf = upTime.getOneSample(upRate, 0);
+        double ttf = upTime.getOneSample(upRate);
         //tottf += ttf;
         //counttf += 1;
         double P = 0;
@@ -34,8 +34,8 @@ public class Failure {
             P = P + processingTimeSamples[i];
             if (P > ttf) {
                 P = P - ttf;
-                repairTimeSamples[i] = downTime.getOneSample(downRate, 0);
-                ttf = upTime.getOneSample(upRate, 0);
+                repairTimeSamples[i] = downTime.getOneSample(downRate);
+                ttf = upTime.getOneSample(upRate);
                 //totre += repairTimeSamples[i];
                 //countre += 1;
                 //tottf += ttf;
