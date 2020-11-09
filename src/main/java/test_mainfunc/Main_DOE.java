@@ -22,7 +22,7 @@ public class Main_DOE {
         String programPath = System.getProperty("user.dir");
 
         //***   Input files   *********************************************************
-        String in_System = programPath + File.separator+"INPUT"+File.separator+"DoE_1BN_M6_Eta0.90.92_CV0.9.yaml";
+        String in_System = programPath + File.separator+"INPUT"+File.separator+"SerialLine_test_DoE_46.yaml";
         InputStream in_SystemFile = null;
         try {
             in_SystemFile = new FileInputStream(in_System);
@@ -33,7 +33,7 @@ public class Main_DOE {
 
 
         //***   Output summary file   *********************************************************
-        String out_resFileSummary = programPath +File.separator+"OUTPUT"+File.separator+"DoE_1BN_M6_Eta0.90.92_CV0.9_summary.txt";
+        String out_resFileSummary = programPath +File.separator+"OUTPUT"+File.separator+"SerialLine_test_DoE_46_new_summary.txt";
 
         OutputStream outRessummary= null;
         try {
@@ -60,8 +60,8 @@ public class Main_DOE {
         writersum.println();
 
         int[] BNpositions=null;
-        int[] BNpositions4={0,1,2,3};
-        int[] BNpositions6={0,2,3,5};
+        int[] BNpositions4={0,1,2,3,4,5};
+        int[] BNpositions6={6,7,8,9,10,11};
 
         //here the DoE starts
 

@@ -3,6 +3,8 @@ package test_mainfunc.optimization;
 import ilog.concert.*;
 import test_mainfunc.simulation.SerialLine;
 
+import java.io.*;
+
 public class BendersStolletz extends BendersBAP {
     private IloNumVar[][] zjk;
 
@@ -41,7 +43,8 @@ public class BendersStolletz extends BendersBAP {
         for(int j=0; j <= this.mySystem.nbStage-1;j++){
             this.zjk[j]=new IloNumVar[this.upperBoundj[j]+1];
             for(int k=0;k<=this.upperBoundj[j];k++){
-                this.zjk[j][k]=cplex.boolVar();
+                String label = "z_" + (j)+"_"+(k);
+                this.zjk[j][k]=cplex.boolVar(label);
             }
         }
     }
@@ -52,7 +55,7 @@ public class BendersStolletz extends BendersBAP {
             for (int j=1; j <= this.mySystem.nbStage-1; j++)
             {
                 IloLinearNumExpr sumzjk_expr = cplex.linearNumExpr();
-                for (int k=1; k<=this.upperBoundj[j]; k++)
+                for (int k=0; k<=this.upperBoundj[j]; k++)
                     sumzjk_expr.addTerm(1,zjk[j][k]);
                 sumzjk_expr.setConstant(-1.0);
                 this.InitialEqConstraints.add(sumzjk_expr);
