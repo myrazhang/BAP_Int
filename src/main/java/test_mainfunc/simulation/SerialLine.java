@@ -25,15 +25,15 @@ public class SerialLine {
 
         scanner.next();
         this.nbStage=scanner.nextInt();
+        //System.out.println(this.nbStage);
 
         buffer=new int[nbStage];
         CT=new StochNum[nbStage+1];
 
-        for(int j=1;j<=7;j++)
+        //for(int j=1;j<=7;j++)
             scanner.next();
         for(int j=1;j<=nbStage-1;j++)
-            buffer[j]=scanner.nextInt();
-
+        { buffer[j]=scanner.nextInt();}
         scanner.next();
         scanner.next();
         for(int j=1;j<=nbStage;j++){
@@ -234,6 +234,7 @@ public class SerialLine {
                         this.departure_BAS(i,j);
                     }
                 }
+
                 OverallCT = (this.Dij[N][nbStage]- Dij[W][nbStage])/ (double)(this.N-this.W);
                 TH=(double) 1/OverallCT;
 
