@@ -20,7 +20,7 @@ public abstract class BendersBAP {
     int simulationLength;
     int warmupLength;
     final int MAX_ITE=20000;
-    final double MAX_CPLEX_TIME=1800 ;
+    final double MAX_CPLEX_TIME=18000 ;
     // End of input
 
     //Output

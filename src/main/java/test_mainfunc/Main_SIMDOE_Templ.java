@@ -29,7 +29,7 @@ public class Main_SIMDOE_Templ {
 
 
         //***   Output summary file   *********************************************************
-        String out_resFileSummary = programPath + File.separator + "OUTPUT" + File.separator + "BAP_DOE_Templ_summary.txt";
+        String out_resFileSummary = programPath + File.separator + "OUTPUT" + File.separator + "BAP_DOE_Templ_summary_sim.txt";
 
         OutputStream outRessummary = null;
         try {
@@ -52,7 +52,7 @@ public class Main_SIMDOE_Templ {
         writersum.println();
 
         //here the DoE starts
-        for (int r = 1; r <= 10; r++) {
+        for (int r = 1; r <= 1; r++) {
 
             //////////LINE A
             SerialLine mySystem = myDOE.getTemplA();
@@ -77,6 +77,7 @@ public class Main_SIMDOE_Templ {
                     }
                 }
             }
+            System.out.println("LINE A: ");
             writersum.write("line_A ");
             myDOE.tempinstance = "lineA_TH_";
 
@@ -91,14 +92,24 @@ public class Main_SIMDOE_Templ {
             }
 
             int [] bbuffer = {0, 14, 9,9,16,28,23,27,8,12,28,6,9,12,8,24,29,10,13};
-            mySystem.mySimulation = mySystem.new SimulationBAS(myDOE.Njobs, myDOE.W, tij);
-            for (int j = 1; j <= mySystem.nbStage - 1; j++) {
-                mySystem.buffer[j] = bbuffer[j];
-            }
-            mySystem.mySimulation.simBAS(false);
+            //int [] bbuffer = {0, 1,1,1,2,2,1,2,4,3,1,2,1,3,2,1,1,1,1};
 
-            writersum.write(mySystem.TH  + " ");
-            writersum.println();
+            int[] jobsvar = {1000, 5000, 10000, 50000, 75000,1000000,1250000, 1500000,1750000,2000000};
+            for (int jo = 0; jo < jobsvar.length; jo++)
+            {
+                myDOE.Njobs = jobsvar[jo];
+                mySystem.mySimulation = mySystem.new SimulationBAS(jobsvar[jo], myDOE.W, tij);
+                for (int j = 1; j <= mySystem.nbStage - 1; j++) {
+                    mySystem.buffer[j] = bbuffer[j];
+                }
+                mySystem.mySimulation.simBAS(false);
+
+                writersum.write("jobs: " + jobsvar[jo] + " and TH " + mySystem.TH  + "; ");
+                System.out.println("jobs: " + jobsvar[jo] + " and TH " + mySystem.TH  + "; ");
+                writersum.println();
+            }
+
+
             // End Simulation
 
             //close single instance file
@@ -133,8 +144,10 @@ public class Main_SIMDOE_Templ {
                     }
                 }
             }
+            System.out.println("LINE B: ");
             writersum.write("line_B " );
             myDOE.tempinstance = "lineB_TH_";
+
 
             // Start optimization with Alter 6 reversed cut
             out_resFile6Reversed = programPath + File.separator + "OUTPUT" + File.separator + "Out_" + myDOE.tempinstance + "_Alter6rev_" + (r) + ".txt";
@@ -147,14 +160,23 @@ public class Main_SIMDOE_Templ {
             }
 
             bbuffer = new int[]{0,  9, 12, 12, 9, 6, 5, 6, 10, 9, 30, 6, 9, 9, 6, 7, 8, 6, 6, 7, 31, 128,128};
-            mySystem.mySimulation = mySystem.new SimulationBAS(myDOE.Njobs, myDOE.W, tij);
-            for (int j = 1; j <= mySystem.nbStage - 1; j++) {
-                mySystem.buffer[j] = bbuffer[j];
-            }
-            mySystem.mySimulation.simBAS(false);
+            //bbuffer = new int[]{0, 1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,5,2,4,1,3,2,1};
 
-            writersum.write(mySystem.TH  + " ");// End Optimization with Alter6 reversed cut
-            writersum.println();
+            for (int jo = 0; jo < jobsvar.length; jo++)
+            {
+                myDOE.Njobs = jobsvar[jo];
+                mySystem.mySimulation = mySystem.new SimulationBAS(jobsvar[jo], myDOE.W, tij);
+                for (int j = 1; j <= mySystem.nbStage - 1; j++) {
+                    mySystem.buffer[j] = bbuffer[j];
+                }
+                mySystem.mySimulation.simBAS(false);
+
+                writersum.write("jobs: " + jobsvar[jo] + " and TH " + mySystem.TH  + "; ");
+                System.out.println("jobs: " + jobsvar[jo] + " and TH " + mySystem.TH  + "; ");
+                writersum.println();
+            }
+
+
             //close single instance file
             try {
                 outRes6RevCut.close();
@@ -186,6 +208,7 @@ public class Main_SIMDOE_Templ {
                     tij[i][j] = tij[i][j] + myFailure.repairTimeSamples[i];
                 }
             }
+            System.out.println("LINE C: ");
             writersum.write("line_C " );
             myDOE.tempinstance = "lineC_TH_";
 
@@ -200,14 +223,25 @@ public class Main_SIMDOE_Templ {
             }
 
             bbuffer = new int[]{0,  21, 31, 20, 24, 19, 4, 12};
+            //bbuffer = new int[]{0,  9, 11, 12, 6, 10, 8, 5 };
+
             mySystem.mySimulation = mySystem.new SimulationBAS(myDOE.Njobs, myDOE.W, tij);
             for (int j = 1; j <= mySystem.nbStage - 1; j++) {
                 mySystem.buffer[j] = bbuffer[j];
             }
-            mySystem.mySimulation.simBAS(false);
+            for (int jo = 0; jo < jobsvar.length; jo++)
+            {
+                myDOE.Njobs = jobsvar[jo];
+                mySystem.mySimulation = mySystem.new SimulationBAS(jobsvar[jo], myDOE.W, tij);
+                for (int j = 1; j <= mySystem.nbStage - 1; j++) {
+                    mySystem.buffer[j] = bbuffer[j];
+                }
+                mySystem.mySimulation.simBAS(false);
 
-            writersum.write(mySystem.TH  + " ");
-            writersum.println();
+                writersum.write("jobs: " + jobsvar[jo] + " and TH " + mySystem.TH  + "; ");
+                System.out.println("jobs: " + jobsvar[jo] + " and TH " + mySystem.TH  + "; ");
+                writersum.println();
+            }
             // End Optimization with Alter6 reversed cut
             //close single instance file
             try {
@@ -241,6 +275,7 @@ public class Main_SIMDOE_Templ {
                 }
             }
             writersum.write("line_D ");
+            System.out.println("LINE D: ");
             myDOE.tempinstance = "lineD_TH_" ;
 
             // Start optimization with Alter 6 reversed cut
@@ -254,14 +289,19 @@ public class Main_SIMDOE_Templ {
             }
 
             bbuffer = new int[]{0,8,25,1,2,16,7,32,1,8,20,9,21,16};
-            mySystem.mySimulation = mySystem.new SimulationBAS(myDOE.Njobs, myDOE.W, tij);
-            for (int j = 1; j <= mySystem.nbStage - 1; j++) {
-                mySystem.buffer[j] = bbuffer[j];
-            }
-            mySystem.mySimulation.simBAS(false);
+            for (int jo = 0; jo < jobsvar.length; jo++)
+            {
+                myDOE.Njobs = jobsvar[jo];
+                mySystem.mySimulation = mySystem.new SimulationBAS(jobsvar[jo], myDOE.W, tij);
+                for (int j = 1; j <= mySystem.nbStage - 1; j++) {
+                    mySystem.buffer[j] = bbuffer[j];
+                }
+                mySystem.mySimulation.simBAS(false);
 
-            writersum.write(mySystem.TH  + " ");
-            writersum.println();
+                writersum.write("jobs: " + jobsvar[jo] + " and TH " + mySystem.TH  + "; ");
+                System.out.println("jobs: " + jobsvar[jo] + " and TH " + mySystem.TH  + "; ");
+                writersum.println();
+            }
             // End Optimization with Alter6 reversed cut
             //close single instance file
             try {
