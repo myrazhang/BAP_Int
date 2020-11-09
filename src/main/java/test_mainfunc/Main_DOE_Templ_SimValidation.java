@@ -178,7 +178,6 @@ public class Main_DOE_Templ_SimValidation {
             writersum.println();
 
 
-
             //////////LINE A
             mySystem = myDOE.getTemplA();
             lB = new int[mySystem.nbStage];
