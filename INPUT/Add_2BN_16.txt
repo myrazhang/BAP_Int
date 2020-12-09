@@ -1,0 +1,12 @@
+NbStage: 6
+Lj: 1
+Uj: 20
+THstar: 0.36
+Buffer: 1 1 1 1 1
+
+Cycletime:
+Distribution:	LogNorm	LogNorm	LogNorm    LogNorm    LogNorm    LogNorm
+Mean:		    2	    1.5	    1.5	    1.5       1.5       2
+CV:		        0.85	    0.85	    0.85	    0.85	    0.85	    0.85
+Para3:          0       0       0       0       0       0
+Para4:          0       0       0       0       0       0

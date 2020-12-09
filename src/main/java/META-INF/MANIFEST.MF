@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Class-Path: cplex.jar commons-math3-3.6.1.jar commons-math3-3.6.1-test
+ s.jar commons-math3-3.6.1-tools.jar commons-math3-3.6.1-javadoc.jar c
+ ommons-math3-3.6.1-sources.jar commons-math3-3.6.1-test-sources.jar
+Main-Class: test_mainfunc.Main_DOE
+

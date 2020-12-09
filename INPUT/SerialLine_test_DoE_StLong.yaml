@@ -1,0 +1,34 @@
+Jobs: 250000
+Warmup: 1
+Lj: 0
+Uj: 10
+NbStage_factors:
+  - 24
+Eta:
+  - 0.3213
+Distribution: Deterministic
+BN_CT_m: 2
+noBN_CT_m:
+  - 1
+sigma:
+  - 4
+beta:
+  - 0.5
+variance:
+  - 1
+BN1_position: 1
+BN2_position: 2
+differentfailedmachine: 
+    - 12
+different_uptime_rate:
+  - 10
+  - 5
+different_downtime_rate:
+  - 4
+  - 2
+iid_uptime_rate:
+  - 0.1
+  - 0.2
+iid_downtime_rate:
+  - 0.25
+  - 0.5
