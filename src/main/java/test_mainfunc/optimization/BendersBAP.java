@@ -20,7 +20,7 @@ public abstract class BendersBAP {
     int upperBoundj[];
     int lowerBoundj[];
     int simulationLength;
-    int warmupLength;
+    //int warmupLength;
     int MAX_ITE=20000;
     double MAX_TIME=18000;
     double TOLERANCE_RATIO = 0.000;
@@ -45,7 +45,7 @@ public abstract class BendersBAP {
 
 
     // Constructor
-    BendersBAP(SerialLine system, double THstar,int[] lB, int[] uB, int N, int W){
+    BendersBAP(SerialLine system, double THstar,int[] lB, int[] uB, int N){
         // Input
         this.mySystem=system;
         this.THstar=THstar;
@@ -56,7 +56,7 @@ public abstract class BendersBAP {
             this.upperBoundj[j]=uB[j];
         }
         this.simulationLength=N;
-        this.warmupLength=W;
+        //this.warmupLength=W;
 
         // Output
         this.bjsol=new ArrayList<>();
@@ -80,7 +80,7 @@ public abstract class BendersBAP {
         }catch(Exception exc){exc.printStackTrace();}
     }
 
-    BendersBAP(SerialLine system, double THstar, int[] lB, int[] uB, int N, int W,
+    BendersBAP(SerialLine system, double THstar, int[] lB, int[] uB, int N,
                // **************************************************************
                int j1, // index of first machine
                int j2, // index of last machine
@@ -97,7 +97,7 @@ public abstract class BendersBAP {
             this.upperBoundj[j]=uB[j+j1-1];
         }
         this.simulationLength=N;
-        this.warmupLength=W;
+        //this.warmupLength=W;
 
         // Output
         this.bjsol=new ArrayList<>();

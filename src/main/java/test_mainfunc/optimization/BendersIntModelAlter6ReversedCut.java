@@ -18,26 +18,26 @@ public class BendersIntModelAlter6ReversedCut extends BendersIntModelAlter6 {
     public BendersIntModelAlter6 myReversedBAPModel;
     private double constantC = 1;
 
-    public BendersIntModelAlter6ReversedCut(SerialLine system, double THstar, int[] lB, int[] uB, int N, int W) {
-        super(system, THstar, lB, uB, N, W);
+    public BendersIntModelAlter6ReversedCut(SerialLine system, double THstar, int[] lB, int[] uB, int N) {
+        super(system, THstar, lB, uB, N);
         int[] reversedLB = new int[lB.length];
         int[] reversedUB = new int[uB.length];
         for (int j = 1; j < lB.length; j++) {
             reversedLB[j] = lB[lB.length - j];
             reversedUB[j] = uB[uB.length - j];
         }
-        this.myReversedBAPModel = new BendersIntModelAlter6(system, THstar, reversedLB, reversedUB, N, W);
+        this.myReversedBAPModel = new BendersIntModelAlter6(system, THstar, reversedLB, reversedUB, N);
     }
 
-    public BendersIntModelAlter6ReversedCut(SerialLine system, double THstar, int[] lB, int[] uB, int N, int W, int startMachine, int endMachine, HashMap<String, Integer> initialBounds) {
-        super(system, THstar, lB, uB, N, W, startMachine, endMachine, initialBounds);
+    public BendersIntModelAlter6ReversedCut(SerialLine system, double THstar, int[] lB, int[] uB, int N, int startMachine, int endMachine, HashMap<String, Integer> initialBounds) {
+        super(system, THstar, lB, uB, N, startMachine, endMachine, initialBounds);
         int[] reversedLB = new int[this.mySystem.nbStage];
         int[] reversedUB = new int[this.mySystem.nbStage];
         for (int j = 1; j < this.mySystem.nbStage; j++) {
             reversedLB[j] = this.lowerBoundj[this.mySystem.nbStage - j];
             reversedUB[j] = this.upperBoundj[this.mySystem.nbStage - j];
         }
-        this.myReversedBAPModel = new BendersIntModelAlter6(this.mySystem, THstar, reversedLB, reversedUB, N, W);
+        this.myReversedBAPModel = new BendersIntModelAlter6(this.mySystem, THstar, reversedLB, reversedUB, N);
     }
 
 
@@ -60,7 +60,7 @@ public class BendersIntModelAlter6ReversedCut extends BendersIntModelAlter6 {
                         tempUb[j1] = this.upperBoundj[j1];
                     }
                 }
-                BendersIntModelAlter6ReversedCut upboundSearchSystem = new BendersIntModelAlter6ReversedCut(mySystem, this.THstar, tempLb, tempUb, this.simulationLength, this.warmupLength);
+                BendersIntModelAlter6ReversedCut upboundSearchSystem = new BendersIntModelAlter6ReversedCut(mySystem, this.THstar, tempLb, tempUb, this.simulationLength);
                 upboundSearchSystem.solveBAPWithIntModel(tij, false);
                 this.lowerBoundj[j] = upboundSearchSystem.mySystem.buffer[j];
                 this.myReversedBAPModel.lowerBoundj[mySystem.nbStage - j] = upboundSearchSystem.mySystem.buffer[j];
@@ -213,7 +213,7 @@ public class BendersIntModelAlter6ReversedCut extends BendersIntModelAlter6 {
                         }
                     }
                     BendersIntModelAlter6ReversedCut subSystemBap = new BendersIntModelAlter6ReversedCut(mySystem,
-                            this.THstar, tempLb, tempUb, this.simulationLength, this.warmupLength,1,mySystem.nbStage,subInitialBounds);
+                            this.THstar, tempLb, tempUb, this.simulationLength, 1,mySystem.nbStage,subInitialBounds);
                     /*BendersIntModelAlter6ReversedCut subSystemBap = new BendersIntModelAlter6ReversedCut(mySystem, THstar, lowerBoundj, upperBoundj, simulationLength, warmupLength,
                             startMachine, endMachine, initialBounds);*/
                     subSystemBap.setMaxTime(remainTime);
@@ -238,7 +238,7 @@ public class BendersIntModelAlter6ReversedCut extends BendersIntModelAlter6 {
 
                     if(remainTime<0 ){
                         if(m <mySystem.nbStage)
-                            subSystemBap = new BendersIntModelAlter6ReversedCut(mySystem, THstar, lowerBoundj, upperBoundj, simulationLength, warmupLength,
+                            subSystemBap = new BendersIntModelAlter6ReversedCut(mySystem, THstar, lowerBoundj, upperBoundj, simulationLength,
                                 1, mySystem.nbStage, initialBounds);
                         subSystemBap.setMaxIte(0);
                         subSystemBap.numit=0;

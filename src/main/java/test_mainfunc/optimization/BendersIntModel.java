@@ -19,22 +19,22 @@ public abstract class BendersIntModel extends BendersBAP {
     protected double theta;
 
     // Constructor
-    BendersIntModel(SerialLine system, double THstar, int[] lB, int[] uB, int N, int W){
-        super(system,THstar, lB, uB,N,W);
+    BendersIntModel(SerialLine system, double THstar, int[] lB, int[] uB, int N){
+        super(system,THstar, lB, uB,N);
 
         this.newCut=new FeasibilityCutCoef();
         this.newCut.coefdeltaM=new double[this.mySystem.nbStage];
         this.newCut.coefdeltaP=new double[this.mySystem.nbStage];
-        this.theta=(double) (N-W);
+        this.theta=(double) (N-1);
     }
 
-    BendersIntModel(SerialLine system, double THstar, int[] lB, int[] uB, int N, int W, int j1, int j2,
+    BendersIntModel(SerialLine system, double THstar, int[] lB, int[] uB, int N, int j1, int j2,
                            HashMap<String,Integer> initialBounds){
-        super(system, THstar,  lB, uB, N, W, j1, j2, initialBounds);
+        super(system, THstar,  lB, uB, N, j1, j2, initialBounds);
         this.newCut=new FeasibilityCutCoef();
         this.newCut.coefdeltaM=new double[this.mySystem.nbStage];
         this.newCut.coefdeltaP=new double[this.mySystem.nbStage];
-        this.theta=(double) (N-W);
+        this.theta=(double) (N-1);
     }
 
     // Public methods
@@ -71,7 +71,7 @@ public abstract class BendersIntModel extends BendersBAP {
     public boolean solveBAPWithIntModel(double[][] tij,boolean redefineBounds) throws IloException {
         totalTimeMeasure.start();
         this.getMmValue(tij);
-        this.mySystem.mySimulation = this.mySystem.new SimulationBAS(this.simulationLength,this.warmupLength,tij);
+        this.mySystem.mySimulation = this.mySystem.new SimulationBAS(this.simulationLength,1,tij);
 
         /*for(int j=1;j<=mySystem.nbStage-1;j++)
             this.mySystem.buffer[j]=lowerBoundj[j];*/

@@ -15,8 +15,8 @@ public class BendersIntModelAlter5 extends BendersIntModel {
     private IloNumVar[][] yjk;
     private boolean[][] delta;
 
-    public BendersIntModelAlter5(SerialLine system, double THstar, int[] lB, int[] uB, int N, int W){
-        super(system, THstar,  lB, uB, N,  W);
+    public BendersIntModelAlter5(SerialLine system, double THstar, int[] lB, int[] uB, int N){
+        super(system, THstar,  lB, uB, N);
         this.delta=new boolean [this.mySystem.nbStage][];
         for(int j=0;j<=this.mySystem.nbStage-1;j++){
             this.delta[j]=new boolean[this.upperBoundj[j]+1];

@@ -12,8 +12,8 @@ public class BendersIntModelAlter4 extends BendersIntModel{
 
     private IloNumVar[][] yjk;
 
-    public BendersIntModelAlter4(SerialLine system, double THstar, int[] lB, int[] uB, int N, int W){
-        super(system, THstar,  lB, uB, N,  W);
+    public BendersIntModelAlter4(SerialLine system, double THstar, int[] lB, int[] uB, int N){
+        super(system, THstar,  lB, uB, N);
     }
 
     /*@Override

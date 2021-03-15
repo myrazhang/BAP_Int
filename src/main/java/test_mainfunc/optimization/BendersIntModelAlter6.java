@@ -18,12 +18,12 @@ public class BendersIntModelAlter6 extends BendersIntModel {
 
     protected IloNumVar[][] yjk;
 
-    public BendersIntModelAlter6(SerialLine system, double THstar, int[] lB, int[] uB, int N, int W){
-        super(system, THstar,  lB, uB, N,  W);
+    public BendersIntModelAlter6(SerialLine system, double THstar, int[] lB, int[] uB, int N){
+        super(system, THstar,  lB, uB, N);
     }
 
-    public BendersIntModelAlter6(SerialLine mySystem, double tHstar, int[] lowerBoundj, int[] upperBoundj, int simulationLength, int warmupLength, int startMachine, int endMachine, HashMap<String, Integer> initialBounds) {
-        super(mySystem, tHstar,  lowerBoundj, upperBoundj, simulationLength, warmupLength, startMachine, endMachine, initialBounds);
+    public BendersIntModelAlter6(SerialLine mySystem, double tHstar, int[] lowerBoundj, int[] upperBoundj, int simulationLength, int startMachine, int endMachine, HashMap<String, Integer> initialBounds) {
+        super(mySystem, tHstar,  lowerBoundj, upperBoundj, simulationLength, startMachine, endMachine, initialBounds);
     }
 
     /*@Override
@@ -44,7 +44,7 @@ public class BendersIntModelAlter6 extends BendersIntModel {
     public boolean solveBAPWithIntModel(double[][] tij,HashMap<String,Integer> initialLowerBounds)throws IloException {
         totalTimeMeasure.start();
         this.getMmValue(tij,initialLowerBounds);
-        this.mySystem.mySimulation = this.mySystem.new SimulationBAS(this.simulationLength,this.warmupLength,tij);
+        this.mySystem.mySimulation = this.mySystem.new SimulationBAS(this.simulationLength,1,tij);
 
         /*for(int j=1;j<=mySystem.nbStage-1;j++)
             this.mySystem.buffer[j]=lowerBoundj[j];*/

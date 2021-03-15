@@ -8,8 +8,8 @@ import test_mainfunc.simulation.SerialLine;
 
 public class BendersIntModelAlter3 extends BendersIntModel {
 
-    public BendersIntModelAlter3(SerialLine system, double THstar, int[] lB, int[] uB, int N, int W){
-        super(system, THstar,  lB, uB, N,  W);
+    public BendersIntModelAlter3(SerialLine system, double THstar, int[] lB, int[] uB, int N){
+        super(system, THstar,  lB, uB, N);
     }
 
     /*@Override
